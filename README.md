@@ -3,7 +3,7 @@
 **Proyecto para la materia de Ingeniería de Software**
 Aplicación móvil para la gestión y envío de órdenes remotas en tiempo real.
 
-## 📄 Contexto y Problemática
+##  Contexto y Problemática
 
 El proyecto se desarrolla para el restaurante **"Pollos Asados La Central - El Tiko"**, ubicado en Montemorelos, Nuevo León.
 
@@ -19,7 +19,7 @@ Implementación de una aplicación móvil instalada en tabletas. Esto permitirá
 
 ---
 
-## 🛠 Justificación Técnica
+##  Justificación Técnica
 
 A continuación se detalla la selección del stack tecnológico, priorizando la escalabilidad, eficiencia y facilidad de mantenimiento.
 
@@ -45,7 +45,7 @@ Optamos por un sistema de gestión relacional (RDBMS) por la naturaleza de los d
 
 ---
 
-## 🏗 Arquitectura del Proyecto
+##  Arquitectura del Proyecto
 
 Para garantizar la mantenibilidad del código, se ha implementado una **Arquitectura Modular** separando las responsabilidades en carpetas independientes dentro del repositorio:
 
@@ -57,7 +57,7 @@ Esta estructura permite que los integrantes trabajen simultáneamente en diferen
 
 ---
 
-## ⚙️ Pre-Requisitos e Instalación
+##  Pre-Requisitos e Instalación
 
 Para ejecutar este proyecto de manera local, es necesario contar con las siguientes herramientas instaladas:
 
@@ -69,7 +69,7 @@ Para ejecutar este proyecto de manera local, es necesario contar con las siguien
 
 ---
 
-## 📸 Galería de Evidencias
+##  Galería de Evidencias
 
 En esta sección se documenta el entorno de desarrollo configurado y la integración del equipo.
 
@@ -83,7 +83,7 @@ En esta sección se documenta el entorno de desarrollo configurado y la integrac
 
 ---
 
-## 👥 Integrantes
+##  Integrantes
 
 **Trabajo realizado por el equipo #4:**
 
