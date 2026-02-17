@@ -87,7 +87,7 @@ En esta sección se documenta el entorno de desarrollo configurado y la integrac
 
 **Trabajo realizado por el equipo #4:**
 
-* Kenner - [Matrícula]
-* Vanessa - [Matrícula]
-* Sergio - [Matrícula]
-* Samuel - [Matrícula]
+* Kenner - 2142291
+* Vanessa - 2158341
+* Sergio - 1990036
+* Samuel - 2227015
