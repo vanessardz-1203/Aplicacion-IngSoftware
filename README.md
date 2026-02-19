@@ -87,7 +87,7 @@ En esta sección se documenta el entorno de desarrollo configurado y la integrac
 
 **Trabajo realizado por el equipo #4:**
 
-* Kenner - 2142291
-* Vanessa - 2158341
-* Sergio - 1990036
-* Samuel - 2227015
+* Kenner Shahid López Ramírez  - 2142291
+* Vanessa Rodríguez Colunga - 2158341
+* Sergio Chiw Wah Tam Hernández - 1990036
+* Uriel Samuel Bravo Castillo - 2227015
