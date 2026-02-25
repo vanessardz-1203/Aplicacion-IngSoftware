@@ -15,7 +15,7 @@ export default function LogInScreen({ navigation }) {
         <StatusBar style="auto" />
         
         {/* Para ingresar el id del mesero */}
-        <Text style={styles.label}>ID:</Text>
+        
         <TextInput 
           style={styles.input} 
           value={id} 
@@ -24,7 +24,7 @@ export default function LogInScreen({ navigation }) {
         />
         
         {/* Para ingresar la contraseña del mesero */}
-        <Text style={styles.label}>Contraseña:</Text>
+        
         <TextInput 
           style={styles.input} 
           value={password} 
@@ -48,14 +48,14 @@ export default function LogInScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#DF1111',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   card: {
     width:320,
-    backgroundColor: "#fff",
+    backgroundColor: "#DF1111",
     borderRadius: 20,
     padding: 25, //espacio interno
     alignItems: "center",
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     width: "100%",
     height: 50,
-    backgroundColor: "#7fbf9f",
+    backgroundColor: "#e9de14",
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
