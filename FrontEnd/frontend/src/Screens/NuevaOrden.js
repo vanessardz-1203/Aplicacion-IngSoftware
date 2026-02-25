@@ -6,14 +6,12 @@ export default function NuevaOrden({ navigation }) {
   
   // Función para manejar la navegación según la opción
   const handleSelection = (tipo) => {
-
     if (tipo === 'ComerAquí') {
-    navigation.navigate('ComerAquí'); 
+    navigation.navigate('MenuCategories'); 
   } else {
     // Aquí luego haremos la lógica para "para llevar" que en vez de pedir mesa va a pedir nombre del cliente y su numero telefonico
-    console.log('Para Llevar seleccionado');
+    navigation.navigate("ParaLlevar");
   }
-
 
   };
 
