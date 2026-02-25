@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { OrderContext } from '../Context/OrderContext';
 
-// NOTA IMPORTANTE: Usamos las MISMAS categorías que en MenuData.js para que todo coincida
+
 const categories = [
   { id: '1', title: 'Pollos Asados', icon: 'local-fire-department', color: '#FF6347' },
   { id: '2', title: 'Carne Asada', icon: 'restaurant', color: '#ff0000' }, 
@@ -22,7 +23,8 @@ export default function ParaLlevarScreen({ navigation }) {
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
 
-  // 1. NAVEGACIÓN CORREGIDA: Ahora sí manda a los platillos
+  const { setOrderInfo } = useContext(OrderContext);
+
   const handleCategoryPress = (categoryName) => {
     // Pasamos el nombre y telefono también por si los necesitamos guardar después
     navigation.navigate('FoodMenu', { 
@@ -37,15 +39,20 @@ export default function ParaLlevarScreen({ navigation }) {
       Alert.alert("Faltan datos", "Por favor completa el nombre y el teléfono del cliente.");
       return;
     }
-    if (telefono.length !== 10) { // Corregido: 'length'
+    if (telefono.length !== 10) { 
       Alert.alert("Teléfono Inválido", "El número debe tener 10 dígitos exactos.");
       return;
     }
 
-    // Aquí luego mandaremos a la pantalla de Resumen
-    console.log("Cliente:", nombre, telefono);
-    Alert.alert("Listo", "Datos del cliente guardados. (Aquí iría al resumen)");
-    // navigation.navigate("ResumenOrden"); 
+    setOrderInfo({ 
+        tipo: 'ParaLlevar', // Esto le dice al resumen que muestre "Cliente" en vez de "Mesa"
+        nombre: nombre, 
+        telefono: telefono 
+    });
+
+    navigation.navigate("OrderSummary");
+
+
   };
 
   const renderItem = ({ item }) => (
@@ -133,7 +140,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginBottom: 20,
     elevation: 3,
-    // Quitamos flexDirection: 'row' para que se pongan uno arriba del otro
   },
   inputGroup: {
     marginBottom: 5,
@@ -177,7 +183,7 @@ const styles = StyleSheet.create({
   },
   cardText: {
     color: 'white',
-    fontSize: 16, // Ajusté un poco el tamaño para que quepan los nombres largos
+    fontSize: 16,
     fontWeight: 'bold',
     marginTop: 10,
     textAlign: 'center',

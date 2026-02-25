@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons'; // Importamos íconos
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function NuevaOrden({ navigation }) {
   
@@ -9,7 +9,6 @@ export default function NuevaOrden({ navigation }) {
     if (tipo === 'ComerAquí') {
     navigation.navigate('MenuCategories'); 
   } else {
-    // Aquí luego haremos la lógica para "para llevar" que en vez de pedir mesa va a pedir nombre del cliente y su numero telefonico
     navigation.navigate("ParaLlevar");
   }
 
@@ -46,7 +45,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#F2F2F2',
-    justifyContent: 'center', // Centra todo verticalmente
+    justifyContent: 'center', 
   },
   headerText: {
     fontSize: 24,
@@ -62,7 +61,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5, // Sombra en Android
-    shadowColor: '#000', // Sombra en iOS quien sabe si se vean o no
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,

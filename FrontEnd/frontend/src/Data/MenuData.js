@@ -1,4 +1,8 @@
 // src/data/MenuData.js
+//pequeña base de datos de las cosas que tiene en el menu el restaurante
+// CORREGIR poder agregar "extras" como guacamole extra, cebolla, etc
+// y tambien agregar un boton de comentarios de los clientes
+//tacos añadir la opcion de si en harina o maiz y queso o sin queso
 
 export const MENU_DATA = {
     'Pollos Asados': [

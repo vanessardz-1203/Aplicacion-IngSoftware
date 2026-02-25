@@ -11,10 +11,15 @@ import MenuCategoriesScreen from './src/Screens/MenuCategoriesScreen';
 import FoodMenuScreen from './src/Screens/FoodMenuScreen'; 
 import ParaLlevarScreen from './src/Screens/ParaLlevarScreen'; 
 
+import { OrderProvider } from './src/Context/OrderContext';
+
+import OrderSummaryScreen from './src/Screens/OrderSummaryScreen'; 
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
+   <OrderProvider>
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
@@ -24,7 +29,9 @@ export default function App() {
         <Stack.Screen name="FoodMenu" component={FoodMenuScreen} options={{ title: 'Platillos' }} />
         <Stack.Screen name="OrdenesActivas" component={OrdenesActivas} options={{ title: 'En Cocina' }} />
         <Stack.Screen name="ParaLlevar" component={ParaLlevarScreen} options={{ title: 'Para Llevar' }} />
+        <Stack.Screen name="OrderSummary" component={OrderSummaryScreen} options={{ title: 'Confirmar Orden' }} />
       </Stack.Navigator>
     </NavigationContainer>
+  </OrderProvider> 
   );
 }

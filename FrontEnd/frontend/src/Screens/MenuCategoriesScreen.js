@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { OrderContext } from '../Context/OrderContext';
 
-// NOTA: Los 'title' deben ser IDÉNTICOS a las llaves de tu MenuData.js
+
 const categories = [
   { id: '1', title: 'Pollos Asados', icon: 'local-fire-department', color: '#FF6347' },
   { id: '2', title: 'Carne Asada', icon: 'restaurant', color: '#ff0000' }, 
@@ -11,17 +12,18 @@ const categories = [
   { id: '5', title: 'Burritos', icon: 'breakfast-dining', color: '#DAA520' },
   { id: '6', title: 'Empalmes', icon: 'fiber-smart-record', color: '#FF69B4' },
   { id: '7', title: 'Gorditas', icon: 'donut-small', color: '#f453e9' },
-  { id: '8', title: 'Papa Asada y Tostadas', icon: 'fastfood', color: '#0059ff' }, // CORREGIDO
+  { id: '8', title: 'Papa Asada y Tostadas', icon: 'fastfood', color: '#0059ff' }, 
   { id: '9', title: 'Platillos', icon: 'restaurant-menu', color: '#3c319e' },
   { id: '10', title: 'Almuerzos', icon: 'egg-alt', color: '#882200' },
   { id: '11', title: 'Bebidas', icon: 'local-bar', color: '#4682B4' },
   { id: '12', title: 'Botanas y Extras', icon: 'tapas', color: '#2E8B57' },
 ];
 
-export default function MenuCategoriesScreen({ navigation }) { // Cambié el nombre de la función
+export default function MenuCategoriesScreen({ navigation }) { 
   const [mesa, setMesa] = useState('');
+  const { setOrderInfo } = useContext(OrderContext); // Trae la función para guardar mesa
 
-  // Función corregida para navegar
+  // Función para navegar
   const handleCategoryPress = (categoryName) => {
     // Navegamos a 'FoodMenu' y le pasamos qué categoría se eligió
     navigation.navigate('FoodMenu', { categoryName: categoryName });
@@ -32,8 +34,7 @@ export default function MenuCategoriesScreen({ navigation }) { // Cambié el nom
       Alert.alert('Falta la Mesa', 'Por favor escribe el número de mesa antes de continuar.');
       return;
     }
-    // Aquí mandaremos a la pantalla de resumen (pendiente)
-    console.log('Viendo orden de la mesa: ', mesa);
+    navigation.navigate('OrderSummary');
   };
 
   const renderItem = ({ item }) => (
@@ -41,7 +42,7 @@ export default function MenuCategoriesScreen({ navigation }) { // Cambié el nom
       style={[styles.card, { backgroundColor: item.color }]} 
       onPress={() => handleCategoryPress(item.title)}
     >
-      {/* Si no tienes icono, usa uno genérico para que no truene */}
+
       <MaterialIcons name={item.icon || 'restaurant'} size={40} color="white" />
       <Text style={styles.cardText}>{item.title}</Text>
     </TouchableOpacity>
@@ -78,7 +79,7 @@ export default function MenuCategoriesScreen({ navigation }) { // Cambié el nom
       {/* FOOTER */}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.viewOrderButton} onPress={handleViewOrder}>
-          <Text style={styles.viewOrderText}>🛒 Ver Orden / Terminar</Text>
+          <Text style={styles.viewOrderText}> Ver Orden / Terminar </Text>
         </TouchableOpacity>
       </View>
     </View>
