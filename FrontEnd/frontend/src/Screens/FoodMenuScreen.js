@@ -2,14 +2,14 @@ import React, { useState, useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { MENU_DATA } from '../Data/MenuData'; 
-import { OrderContext } from '../Context/OrderContext'; // <--- IMPORTAMOS EL CONTEXTO
+import { OrderContext } from '../Context/OrderContext'; 
 
 export default function FoodMenuScreen({ route, navigation }) {
   const { categoryName } = route.params || { categoryName: 'Pollos Asados' };
   const currentMenu = MENU_DATA[categoryName] || MENU_DATA['default'];
   
   const [quantities, setQuantities] = useState({});
-  const { addItemsToOrder } = useContext(OrderContext); // <--- USAMOS LA FUNCIÓN DE GUARDAR
+  const { addItemsToOrder } = useContext(OrderContext); 
 
   const updateQuantity = (id, increment) => {
     setQuantities(prev => {
@@ -20,7 +20,7 @@ export default function FoodMenuScreen({ route, navigation }) {
   };
 
   const handleConfirm = () => {
-    // 1. Filtramos solo los productos que tienen cantidad > 0
+    //  Filtramos solo los productos que tienen cantidad > 0
     const itemsToAdd = [];
     currentMenu.forEach(item => {
       const qty = quantities[item.id] || 0;
@@ -34,15 +34,13 @@ export default function FoodMenuScreen({ route, navigation }) {
       return;
     }
 
-    // 2. Los guardamos en la memoria global
+    //  Los guardamos en la memoria global
     addItemsToOrder(itemsToAdd);
     
     Alert.alert('Agregado', 'Productos agregados al carrito.');
     navigation.goBack(); 
   };
 
-  // ... (EL RESTO DEL CÓDIGO DE RENDERITEM Y STYLES ES EXACTAMENTE IGUAL AL ANTERIOR)
-  // Solo copio la parte del render para referencia, usa la misma que tenías abajo:
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.infoContainer}>
@@ -79,7 +77,7 @@ export default function FoodMenuScreen({ route, navigation }) {
     </View>
   );
 }
-// (Usa los mismos estilos que tenías)
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F2', padding: 15 },
   title: { fontSize: 28, fontWeight: 'bold', color: '#FF6347', marginBottom: 20, textAlign: 'center', marginTop: 10 },

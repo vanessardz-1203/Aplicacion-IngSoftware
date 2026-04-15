@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, {useState} from 'react';
 import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'react-native';
 
-const icon = require('../../assets/images/LogoPollos.png');
+const icon = require('../../assets/images/Logo restaurante circular.jpg');
 
 export default function LogInScreen({ navigation }) {
   const [id, setId] = useState("")
@@ -48,14 +48,14 @@ export default function LogInScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#DF1111',
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   card: {
     width:320,
-    backgroundColor: "#DF1111",
+    backgroundColor: "#ffffff",
     borderRadius: 20,
     padding: 25, //espacio interno
     alignItems: "center",
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     width: "100%",
     height: 50,
-    backgroundColor: "#e9de14",
+    backgroundColor: "#ffee00",
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",

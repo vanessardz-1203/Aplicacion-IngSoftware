@@ -23,9 +23,18 @@ export default function MenuCategoriesScreen({ navigation }) {
   const [mesa, setMesa] = useState('');
   const { setOrderInfo } = useContext(OrderContext); // Trae la función para guardar mesa
 
-  // Función para navegar
+
+ // Función para navegar
   const handleCategoryPress = (categoryName) => {
-    // Navegamos a 'FoodMenu' y le pasamos qué categoría se eligió
+    //  Obligamos a que pongan la mesa antes de ver el menú
+    if (mesa.trim() === '') {
+      Alert.alert('Falta la Mesa', 'Por favor escribe el número de mesa antes de continuar.');
+      return;
+    }
+    
+    setOrderInfo({ tipo: 'ComerAquí', mesa: mesa });
+
+    // Navegamos al menú
     navigation.navigate('FoodMenu', { categoryName: categoryName });
   };
 
@@ -34,6 +43,8 @@ export default function MenuCategoriesScreen({ navigation }) {
       Alert.alert('Falta la Mesa', 'Por favor escribe el número de mesa antes de continuar.');
       return;
     }
+    setOrderInfo({ tipo: 'ComerAquí', mesa: mesa });
+
     navigation.navigate('OrderSummary');
   };
 

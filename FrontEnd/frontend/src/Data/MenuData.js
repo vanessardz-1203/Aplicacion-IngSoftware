@@ -98,7 +98,7 @@ export const MENU_DATA = {
       { id: 'pl9', name: 'Orden de Menudo', price: 150 },  
     ],
 
-        'Almuerzos': [
+      'Almuerzos': [
       { id: 'al1', name: 'Huevo a la Mexicana', price: 100 },
       { id: 'al2', name: 'Machacado', price: 100 },
       { id: 'al3', name: 'Huevos Rancheros', price: 100 },

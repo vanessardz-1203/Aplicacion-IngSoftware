@@ -1,8 +1,7 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert, Platform, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { OrderContext } from '../Context/OrderContext';
-
 
 const categories = [
   { id: '1', title: 'Pollos Asados', icon: 'local-fire-department', color: '#FF6347' },
@@ -25,8 +24,25 @@ export default function ParaLlevarScreen({ navigation }) {
 
   const { setOrderInfo } = useContext(OrderContext);
 
-  const handleCategoryPress = (categoryName) => {
-    // Pasamos el nombre y telefono también por si los necesitamos guardar después
+const handleCategoryPress = (categoryName) => {
+    // Validación súper segura
+    if (!nombre || nombre.trim() === "") {
+      if (Platform.OS === 'web') {
+        window.alert("Faltan datos: Por favor escribe el nombre del cliente antes de continuar.");
+      } else {
+        Alert.alert("Faltan datos", "Por favor escribe el nombre del cliente antes de continuar.");
+      }
+      return; // Detiene la función
+    }
+
+    // Guardamos en el cerebro
+    setOrderInfo({ 
+        tipo: 'Para Llevar', 
+        nombre: nombre, 
+        telefono: telefono 
+    });
+
+    // Navegamos al menú
     navigation.navigate('FoodMenu', { 
       categoryName: categoryName,
       cliente: { nombre, telefono } 
@@ -34,25 +50,32 @@ export default function ParaLlevarScreen({ navigation }) {
   };
 
   const handleViewOrder = () => {
-    // Validaciones
-    if (nombre.trim() === "" || telefono.trim() === "") {
-      Alert.alert("Faltan datos", "Por favor completa el nombre y el teléfono del cliente.");
+    // Validaciones seguras para el botón de Ver Orden
+    if (!nombre || nombre.trim() === "" || !telefono || telefono.trim() === "") {
+      if (Platform.OS === 'web') {
+        window.alert("Faltan datos: Por favor completa el nombre y el teléfono del cliente.");
+      } else {
+        Alert.alert("Faltan datos", "Por favor completa el nombre y el teléfono del cliente.");
+      }
       return;
     }
+    
     if (telefono.length !== 10) { 
-      Alert.alert("Teléfono Inválido", "El número debe tener 10 dígitos exactos.");
+      if (Platform.OS === 'web') {
+        window.alert("Teléfono Inválido: El número debe tener 10 dígitos exactos.");
+      } else {
+        Alert.alert("Teléfono Inválido", "El número debe tener 10 dígitos exactos.");
+      }
       return;
     }
 
     setOrderInfo({ 
-        tipo: 'ParaLlevar', // Esto le dice al resumen que muestre "Cliente" en vez de "Mesa"
+        tipo: 'Para Llevar', 
         nombre: nombre, 
         telefono: telefono 
     });
 
     navigation.navigate("OrderSummary");
-
-
   };
 
   const renderItem = ({ item }) => (
@@ -76,7 +99,7 @@ export default function ParaLlevarScreen({ navigation }) {
           <Text style={styles.label}>Nombre del Cliente:</Text>
           <TextInput
             style={styles.input}
-            placeholder="Ej. Juan Pérez"
+            placeholder="Ej. El Tiko"
             placeholderTextColor="#999"
             value={nombre}
             onChangeText={setNombre}
@@ -91,7 +114,7 @@ export default function ParaLlevarScreen({ navigation }) {
           <Text style={styles.label}>Teléfono (10 dígitos):</Text>
           <TextInput
             style={styles.input}
-            placeholder="Ej. 811..."
+            placeholder="Ej. 826..."
             placeholderTextColor="#999"
             value={telefono}
             onChangeText={(text) => {
@@ -120,7 +143,7 @@ export default function ParaLlevarScreen({ navigation }) {
       {/* BOTÓN INFERIOR */}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.viewOrderButton} onPress={handleViewOrder}>
-          <Text style={styles.viewOrderText}>🛒 Ver Orden / Terminar</Text>
+          <Text style={styles.viewOrderText}> Ver Orden / Terminar</Text>
         </TouchableOpacity>
       </View>
 

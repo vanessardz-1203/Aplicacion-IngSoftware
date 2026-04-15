@@ -10,17 +10,17 @@ export const OrderProvider = ({ children }) => {
   //  Lista de órdenes ya confirmadas (para "Órdenes Activas")
   const [activeOrders, setActiveOrders] = useState([]);
 
-  // --- FUNCIONES DEL CARRITO TEMPORAL ---
+  // Funciones del carrito temporal
 
-  // Agregar productos al carrito
+  // Agg product
   const addItemsToOrder = (items) => {
     setOrderItems((prevItems) => [...prevItems, ...items]);
   };
 
-  //  Restar cantidad de uno en uno (para el resumen)
+  //  Restar cantidad 
   const decreaseItemQuantity = (index) => {
     setOrderItems(currentItems => {
-      // Creamos una copia de la lista para no modificarla directamente
+      
       const newItems = [...currentItems];
       // Si hay más de 1, restamos uno.
       if (newItems[index].quantity > 1) {
@@ -33,7 +33,6 @@ export const OrderProvider = ({ children }) => {
     });
   };
 
-  // Borrar un renglón completo (por si acaso)
   const removeItem = (indexToRemove) => {
     setOrderItems((prevItems) => prevItems.filter((_, index) => index !== indexToRemove));
   };
@@ -44,9 +43,25 @@ export const OrderProvider = ({ children }) => {
     setOrderInfo({});
   };
 
+//Para guardar extras y recalcular precio 
+  const updateItemExtras = (index, comentario, costoExtras) => {
+    const newOrderItems = [...orderItems];
+    const item = newOrderItems[index];
+
+    // Guardamos el comentario y el costo de los extras
+    item.comentario = comentario;
+    item.costoExtras = costoExtras; 
+    
+    // Calculamos su nuevo precio unitario final (precio base + extras)
+    item.priceFinal = item.price + costoExtras;
+
+    setOrderItems(newOrderItems);
+  };
+
+
 
   const finalizeOrder = () => {
-    //  Empaquetamos todo lo del carrito en una "Orden Final"
+    //  empaquetar todo el carro temporal
     const newFinishedOrder = {
         id: Date.now().toString(), // Creamos un ID único basado en la hora
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), // Hora actual
@@ -55,8 +70,8 @@ export const OrderProvider = ({ children }) => {
         status: 'En Cocina' // Estado inicial
     };
 
-    //  La guardamos en la lista de "Órdenes Activas"
-    setActiveOrders(prevOrders => [newFinishedOrder, ...prevOrders]); // Las nuevas arriba
+    //  agg a las ordenes activas
+    setActiveOrders(prevOrders => [newFinishedOrder, ...prevOrders]); // nuevas arriba
 
     //  Limpiamos el carrito para la siguiente mesa
     clearOrder();
@@ -72,7 +87,7 @@ export const OrderProvider = ({ children }) => {
       decreaseItemQuantity, 
       removeItem, 
       clearOrder,
-      
+      updateItemExtras,
       activeOrders, 
       finalizeOrder 
     }}>
