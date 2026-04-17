@@ -59,6 +59,12 @@ export const OrderProvider = ({ children }) => {
   };
 
 
+  const updateItemPrice = (index, precioManual) => {
+    const newOrderItems = [...orderItems];
+    // Reemplazamos el precio final por el que escribieron manualmente
+    newOrderItems[index].priceFinal = precioManual;
+    setOrderItems(newOrderItems);
+  };
 
   const finalizeOrder = () => {
     //  empaquetar todo el carro temporal
@@ -77,6 +83,11 @@ export const OrderProvider = ({ children }) => {
     clearOrder();
   };
 
+  // funcion para eliminar orden de la lista de ordenes activas (cuando se marca como "Entregada")
+  const removeActiveOrder = (orderId) => {
+    setActiveOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
+  };
+
 
   return (
     <OrderContext.Provider value={{ 
@@ -88,8 +99,11 @@ export const OrderProvider = ({ children }) => {
       removeItem, 
       clearOrder,
       updateItemExtras,
+      updateItemPrice,
       activeOrders, 
-      finalizeOrder 
+      finalizeOrder,
+      removeActiveOrder 
+
     }}>
       {children}
     </OrderContext.Provider>

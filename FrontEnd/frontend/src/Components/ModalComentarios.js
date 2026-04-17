@@ -10,6 +10,8 @@ export default function ModalComentarios({ visible, onClose, item, onSave }) {
   const [extraArroz, setExtraArroz] = useState(false);
   const [extraFrijoles, setExtraFrijoles] = useState(false);
 
+  const [saborSeleccionado, setSaborSeleccionado] = useState(null);
+  const SABORES = ['Jamaica', 'Limón', 'Piña', 'Tamarindo', 'Melón', 'Sandía'];
   
   // Cada vez que se abre el modal con un nuevo item, reseteamos los estados
   useEffect(() => {
@@ -18,6 +20,7 @@ export default function ModalComentarios({ visible, onClose, item, onSave }) {
     setExtraAguacate(false);
     setExtraArroz(false);
     setExtraFrijoles(false);
+    setSaborSeleccionado(null);
   }, [item]);
 
   if (!item) return null;
@@ -26,7 +29,35 @@ export default function ModalComentarios({ visible, onClose, item, onSave }) {
     const id = item.id;
 
     if (id.startsWith('be')) { // bebidas
-      return <Text style={styles.notaGris}>Las bebidas no admiten extras de comida.</Text>;
+      if (id === 'be5') {
+        return (
+          <View style={styles.extrasContainer}>
+            <Text style={styles.tituloExtras}>Elige el Sabor:</Text>
+            <View style={styles.saboresGrid}>
+              {SABORES.map((sabor) => (
+                <TouchableOpacity 
+                  key={sabor}
+                  style={[
+                    styles.btnSabor, 
+                    saborSeleccionado === sabor && styles.btnSaborActivo // Si está seleccionado, cambia de color
+                  ]}
+                  onPress={() => setSaborSeleccionado(sabor)}
+                >
+                  <Text style={[
+                    styles.txtSabor, 
+                    saborSeleccionado === sabor && styles.txtSaborActivo
+                  ]}>
+                    {sabor}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        );
+      }
+      
+      // Si es cualquier otra bebida (Coca, Cerveza, etc.)
+      return <Text style={styles.notaGris}>Esta bebida no admite extras ni sabores.</Text>;
     }
 
     if (id.startsWith('bu') || id.startsWith('h')) { // burritos hamburguesas
@@ -89,8 +120,22 @@ export default function ModalComentarios({ visible, onClose, item, onSave }) {
       costoTotalExtras += item.id.startsWith('go') ? 5 : 10;
     }
 
+    let comentarioFinal = comentario; 
+    
+    if (item.id === 'be5') {
+      if (!saborSeleccionado) {
+        // Validar que seleccionen sabor
+        alert("Por favor selecciona un sabor para el agua fresca.");
+        return; 
+      }
+      // Si escribieron un comentario, lo unimos. Si no, solo mandamos el sabor.
+      comentarioFinal = comentario.trim() !== '' 
+        ? `Sabor: ${saborSeleccionado} | Notas: ${comentario}` 
+        : `Sabor: ${saborSeleccionado}`;
+    }
+
     // Le mandamos la info de regreso a la pantalla 
-    onSave(comentario, costoTotalExtras);
+    onSave(comentarioFinal, costoTotalExtras);
   };
 
   return ( 
@@ -143,5 +188,37 @@ const styles = StyleSheet.create({
   btnCancelar: { padding: 12, borderRadius: 8, backgroundColor: '#EEE', flex: 1, marginRight: 10, alignItems: 'center' },
   txtBtnCancelar: { color: '#555', fontWeight: 'bold' },
   btnGuardar: { padding: 12, borderRadius: 8, backgroundColor: '#4CAF50', flex: 1, marginLeft: 10, alignItems: 'center' },
-  txtBtnGuardar: { color: 'white', fontWeight: 'bold' }
+  txtBtnGuardar: { color: 'white', fontWeight: 'bold' },
+
+
+
+
+  saboresGrid: {  // nuevo para las cosas de los sabores de las aguas 
+    flexDirection: 'row',
+    flexWrap: 'wrap', // Esto hace que los botones bajen a la siguiente línea si no caben
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  btnSabor: {
+    width: '30%', // Caben 3 botones por fila
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  btnSaborActivo: {
+    backgroundColor: '#4682B4', 
+    borderColor: '#4682B4',
+  },
+  txtSabor: {
+    color: '#555',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  txtSaborActivo: {
+    color: 'white',
+  },
 });

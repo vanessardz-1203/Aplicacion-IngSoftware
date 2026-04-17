@@ -70,7 +70,7 @@ export const MENU_DATA = {
       { id: 'be2', name: 'Coca Cola Vidrio', price: 30 },
       { id: 'be3', name: 'Joya Sabores', price: 30 },
       { id: 'be4', name: 'Agua Natural 1lt', price: 30 },
-      { id: 'be5', name: 'Aguas Frescas (Litro)', price: 45, desc: 'Jamaica, Limón, Piña, Tamarindo, Melón, Sandía' },
+      { id: 'be5', name: 'Aguas Frescas (Litro)', price: 45, desc: 'Jamaica, Limón, Piña, Tamarindo, Melón, Sandía'},
       { id: 'be6', name: 'Jugo de Naranja', price: 50 },
       { id: 'be7', name: 'Tecate', price: 25 },
       { id: 'be8', name: 'Café', price: 30},

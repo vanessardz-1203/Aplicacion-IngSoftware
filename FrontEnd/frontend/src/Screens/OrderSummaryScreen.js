@@ -5,12 +5,15 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { OrderContext } from '../Context/OrderContext';
 import ModalComentarios from '../Components/ModalComentarios'; 
 
+import ModalPrecio from '../Components/ModalPrecio';
+
 export default function OrderSummaryScreen({ navigation }) {
   // funciones y estados que vamos a usar del contexto
-  const { orderItems, orderInfo, decreaseItemQuantity, finalizeOrder, updateItemExtras } = useContext(OrderContext);
+  const { orderItems, orderInfo, decreaseItemQuantity, finalizeOrder, updateItemExtras, updateItemPrice } = useContext(OrderContext);
 
   
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalPrecioVisible, setModalPrecioVisible] = useState(false);
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const [indexSeleccionado, setIndexSeleccionado] = useState(null);
 
@@ -88,6 +91,18 @@ const handleSendOrder = () => {
             <MaterialIcons name="edit" size={28} color="#4A90E2" />
           </TouchableOpacity>
 
+            {/* Botón para ajustar precio manualmente */}
+          <TouchableOpacity 
+            onPress={() => {
+              setItemSeleccionado(item);
+              setIndexSeleccionado(index);
+              setModalPrecioVisible(true);
+            }} 
+            style={styles.actionButton}
+          >
+            <MaterialIcons name="attach-money" size={28} color="#FBC02D" />
+          </TouchableOpacity>
+
           <TouchableOpacity onPress={() => confirmarEliminacion(index, item.name)} style={styles.actionButton}>
             <MaterialIcons name="remove-circle" size={28} color="#FF5252" />
           </TouchableOpacity>
@@ -139,6 +154,16 @@ const handleSendOrder = () => {
           
           updateItemExtras(indexSeleccionado, comentario, costoExtras); 
           setModalVisible(false); // cerramos el modal
+        }}
+      />
+
+      <ModalPrecio 
+        visible={modalPrecioVisible}
+        item={itemSeleccionado}
+        onClose={() => setModalPrecioVisible(false)}
+        onSave={(nuevoPrecio) => {
+          updateItemPrice(indexSeleccionado, nuevoPrecio);
+          setModalPrecioVisible(false);
         }}
       />
 
