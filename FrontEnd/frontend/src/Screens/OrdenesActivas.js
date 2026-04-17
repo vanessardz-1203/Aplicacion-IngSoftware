@@ -4,9 +4,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import { OrderContext } from '../Context/OrderContext';
 
-export default function OrdenesActivas() {
+export default function OrdenesActivas({ navigation }) {
   // funciones y estados que vamos a usar del contexto
-  const { activeOrders, removeActiveOrder } = useContext(OrderContext);
+  const { activeOrders, removeActiveOrder, loadOrderForEditing } = useContext(OrderContext);
 
   // Funcion de confirmación
   const handleDeleteOrder = (orderId) => {
@@ -20,13 +20,19 @@ export default function OrdenesActivas() {
     );
   };
 
+
+  const handleEdit = (order) => {
+    loadOrderForEditing(order); // "Cargamos" la orden en el carrito
+    navigation.navigate('OrderSummary'); // Saltamos al carrito
+  };
+
   const renderOrderTicket = ({ item }) => {
     const totalItems = item.items.reduce((sum, prod) => sum + prod.quantity, 0);
 
     return (
       <View style={styles.ticketCard}>
         {/* Encabezado del Ticket */}
-        <View style={styles.ticketHeader}>
+<View style={styles.ticketHeader}>
           <View>
             <Text style={styles.ticketTitle}>
               {item.info.tipo === 'ComerAquí' ? `Mesa ${item.info.mesa}` : `${item.info.nombre}`}
@@ -34,10 +40,17 @@ export default function OrdenesActivas() {
             <Text style={styles.timestamp}>{item.timestamp}</Text>
           </View>
 
-          {/* boton de eliminar la orden*/}
-          <TouchableOpacity onPress={() => handleDeleteOrder(item.id)}>
-             <MaterialIcons name="check-circle" size={40} color="#4CAF50" />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {/* Botón de Editar  */}
+            <TouchableOpacity onPress={() => handleEdit(item)} style={{ marginRight: 15 }}>
+              <MaterialIcons name="edit" size={32} color="#4A90E2" />
+            </TouchableOpacity>
+
+            {/* Boton de finalizar la orden  */}
+            <TouchableOpacity onPress={() => handleDeleteOrder(item.id)}>
+               <MaterialIcons name="check-circle" size={40} color="#4CAF50" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Estado de la orden */}

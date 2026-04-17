@@ -9,7 +9,7 @@ import ModalPrecio from '../Components/ModalPrecio';
 
 export default function OrderSummaryScreen({ navigation }) {
   // funciones y estados que vamos a usar del contexto
-  const { orderItems, orderInfo, decreaseItemQuantity, finalizeOrder, updateItemExtras, updateItemPrice } = useContext(OrderContext);
+  const { orderItems, orderInfo, decreaseItemQuantity, finalizeOrder, updateItemExtras, updateItemPrice, editingOrderId } = useContext(OrderContext);
 
   
   const [modalVisible, setModalVisible] = useState(false);
@@ -32,9 +32,10 @@ const handleSendOrder = () => {
 
     finalizeOrder();
     
+    // Alerta dependiendo de lo que se haga si editar o enviar nueva orden
     Alert.alert(
-      "¡Orden Enviada!", 
-      "El pedido ha sido enviado a cocina.",
+      editingOrderId ? "¡Cambios Guardados!" : "¡Orden Enviada!", 
+      editingOrderId ? "La orden ha sido actualizada en la cocina." : "El pedido ha sido enviado a cocina.",
       [{ 
         text: "OK", 
         onPress: () => {
@@ -59,6 +60,18 @@ const handleSendOrder = () => {
       );
     }
   };
+
+
+   const handleAddMore = () => {
+    // asegurarse que los mande al menu de categorias independiente si es para comer aqui o para llevar
+    if (orderInfo?.tipo === 'ComerAquí') {
+      navigation.navigate('MenuCategories'); 
+    } else {
+      navigation.navigate('ParaLlevar');
+    }
+  };
+
+
 
   // Renderizado de cada renglón del resumen
   const renderItem = ({ item, index }) => {
@@ -111,6 +124,7 @@ const handleSendOrder = () => {
     );
   };
 
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -137,10 +151,12 @@ const handleSendOrder = () => {
         </View>
 
         <TouchableOpacity style={styles.confirmButton} onPress={handleSendOrder}>
-          <Text style={styles.confirmText}> CONFIRMAR Y ENVIAR A COCINA </Text>
+          <Text style={styles.confirmText}> 
+            {editingOrderId ? "GUARDAR CAMBIOS" : "CONFIRMAR Y ENVIAR A COCINA"}
+          </Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.addMoreButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.addMoreButton} onPress={handleAddMore}>
           <Text style={styles.addMoreText}> ← Seguir agregando</Text>
         </TouchableOpacity>
       </View>
