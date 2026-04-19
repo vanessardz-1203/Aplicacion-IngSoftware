@@ -7,6 +7,9 @@ export const OrderProvider = ({ children }) => {
   const [orderItems, setOrderItems] = useState([]);
   const [orderInfo, setOrderInfo] = useState({});
 
+
+  const [userData, setUserData] = useState(null);
+
   //  Lista de órdenes ya confirmadas (para "Órdenes Activas")
   const [activeOrders, setActiveOrders] = useState([]);
 
@@ -110,6 +113,9 @@ export const OrderProvider = ({ children }) => {
 
   return (
     <OrderContext.Provider value={{ 
+      userData, 
+      setUserData,
+      orderItems,
       orderItems, 
       orderInfo, 
       setOrderInfo,
@@ -124,6 +130,7 @@ export const OrderProvider = ({ children }) => {
       removeActiveOrder, 
       loadOrderForEditing,
       editingOrderId
+      
     }}>
       {children}
     </OrderContext.Provider>

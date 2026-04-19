@@ -4,45 +4,116 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import { OrderContext } from '../Context/OrderContext';
 import ModalComentarios from '../Components/ModalComentarios'; 
-
 import ModalPrecio from '../Components/ModalPrecio';
+import { supabase } from "../../supabase_db/supabaseClient"
 
 export default function OrderSummaryScreen({ navigation }) {
-  // funciones y estados que vamos a usar del contexto
   const { orderItems, orderInfo, decreaseItemQuantity, finalizeOrder, updateItemExtras, updateItemPrice, editingOrderId } = useContext(OrderContext);
 
-  
   const [modalVisible, setModalVisible] = useState(false);
   const [modalPrecioVisible, setModalPrecioVisible] = useState(false);
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const [indexSeleccionado, setIndexSeleccionado] = useState(null);
 
-  
-  // Si el platillo tiene un priceFinal (porque le agregaron extras), usa ese. Si no, usa su precio normal.
   const total = orderItems.reduce((sum, item) => {
     const precioUnitario = item.priceFinal ? item.priceFinal : item.price;
     return sum + (precioUnitario * item.quantity);
   }, 0);
 
-const handleSendOrder = () => {
+  const handleSendOrder = async () => {
     if (orderItems.length === 0) {
       Alert.alert("Orden Vacía", "No hay nada que enviar.");
       return;
     }
 
-    finalizeOrder();
-    
-    // Alerta dependiendo de lo que se haga si editar o enviar nueva orden
-    Alert.alert(
-      editingOrderId ? "¡Cambios Guardados!" : "¡Orden Enviada!", 
-      editingOrderId ? "La orden ha sido actualizada en la cocina." : "El pedido ha sido enviado a cocina.",
-      [{ 
-        text: "OK", 
-        onPress: () => {
-          navigation.navigate('Menu'); // Volvemos al inicio después de enviar
-        }
-      }]
-    );
+    try {
+      // 1. Calculamos el total exacto
+      const calculatedTotal = orderItems.reduce((sum, item) => {
+        const precio = item.priceFinal ? item.priceFinal : item.price;
+        return sum + (precio * item.quantity);
+      }, 0);
+
+      // 2. Preparamos los datos de la orden padre
+      const orderPayload = {
+        order_type: orderInfo.tipo === 'ComerAquí' ? 'comer_aqui' : 'para_llevar',
+        mesa: orderInfo.mesa || null,
+        name_client: orderInfo.nombre || null,
+        telefono: orderInfo.telefono || null,
+        total_price: calculatedTotal
+      };
+
+      let currentOrderId;
+
+      if (editingOrderId) {
+        //  Actualizamos la orden existente 
+        const { error: updateError } = await supabase
+          .from('orders')
+          .update(orderPayload)
+          .eq('order_id', editingOrderId); // Asumiendo que el ID en supabase es 'order_id'
+        
+        if (updateError) throw updateError;
+        currentOrderId = editingOrderId;
+
+        // Limpiamos los items viejos de esta orden para meter los nuevos (forma más segura)
+        const { error: deleteError } = await supabase
+          .from('order_items')
+          .delete()
+          .eq('order_id', editingOrderId);
+        
+        if (deleteError) throw deleteError;
+
+      } else {
+        //  Insertamos una orden nueva 
+        const { data: orderData, error: orderError } = await supabase
+          .from('orders')
+          .insert([orderPayload])
+          .select()
+          .single();
+
+        if (orderError) throw orderError;
+        currentOrderId = orderData.order_id;
+      }
+
+      // 3. Insertamos los platillos actualizados (aplica para ambos modos)
+      const itemsToInsert = orderItems.map(item => {
+        const precioFinal = item.priceFinal ? item.priceFinal : item.price;
+        return {
+          order_id: currentOrderId,
+          nom_platillo: item.name,
+          price: precioFinal,
+          quantity: item.quantity,
+          subtotal: precioFinal * item.quantity,
+          notes: item.comentario || null
+        };
+      });
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(itemsToInsert);
+
+      if (itemsError) throw itemsError;
+
+      // 4. Actualizamos tu contexto local (FrontEnd)
+      finalizeOrder();
+
+      // 5. Avisamos que todo salió bien
+      Alert.alert(
+        editingOrderId ? "¡Cambios Guardados!" : "¡Orden Guardada!",
+        "La base de datos se actualizó correctamente.", 
+        [{
+          text: "OK",
+          onPress: () => navigation.navigate({ name: 'Menu', merge: true })
+        }]
+      );
+
+    } catch (error) {
+      // Usamos console.log y solo pedimos el texto del error, no el objeto completo
+      console.log("Error de Supabase:", error?.message || "Error desconocido");
+      Alert.alert(
+        "No se pudo guardar", 
+        "Asegúrate de haber iniciado sesión correctamente y tener internet."
+      );
+    }
   };
 
   const confirmarEliminacion = (index, itemName) => {
@@ -61,9 +132,7 @@ const handleSendOrder = () => {
     }
   };
 
-
-   const handleAddMore = () => {
-    // asegurarse que los mande al menu de categorias independiente si es para comer aqui o para llevar
+  const handleAddMore = () => {
     if (orderInfo?.tipo === 'ComerAquí') {
       navigation.navigate('MenuCategories'); 
     } else {
@@ -71,11 +140,7 @@ const handleSendOrder = () => {
     }
   };
 
-
-
-  // Renderizado de cada renglón del resumen
   const renderItem = ({ item, index }) => {
-    // Calculamos el precio a mostrar en el renglón
     const precioMostrar = (item.priceFinal ? item.priceFinal : item.price) * item.quantity;
 
     return (
@@ -84,7 +149,6 @@ const handleSendOrder = () => {
           <Text style={styles.quantityBadge}>{item.quantity}x</Text>
           <View>
             <Text style={styles.itemName}>{item.name}</Text>
-            {/* si tiene comentario se muestra chikito*/}
             {item.comentario ? <Text style={styles.notaGrisText}>{item.comentario}</Text> : null}
           </View>
         </View>
@@ -92,19 +156,17 @@ const handleSendOrder = () => {
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
            <Text style={styles.itemPrice}>${precioMostrar}</Text>
            
-          {/* Botón para editar */}
           <TouchableOpacity 
             onPress={() => {
               setItemSeleccionado(item);
-              setIndexSeleccionado(index); // Guardamos qué renglón es
-              setModalVisible(true);       // Abrimos el modal
+              setIndexSeleccionado(index); 
+              setModalVisible(true);       
             }} 
             style={styles.actionButton}
           >
             <MaterialIcons name="edit" size={28} color="#4A90E2" />
           </TouchableOpacity>
 
-            {/* Botón para ajustar precio manualmente */}
           <TouchableOpacity 
             onPress={() => {
               setItemSeleccionado(item);
@@ -123,7 +185,6 @@ const handleSendOrder = () => {
       </View>
     );
   };
-
 
   return (
     <View style={styles.container}>
@@ -146,7 +207,6 @@ const handleSendOrder = () => {
       <View style={styles.footer}>
         <View style={styles.totalContainer}>
           <Text style={styles.totalLabel}>Total:</Text>
-          {/* Total actualizado */}
           <Text style={styles.totalAmount}>${total}</Text> 
         </View>
 
@@ -161,15 +221,13 @@ const handleSendOrder = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Modal para comentarios y extras */}
       <ModalComentarios 
         visible={modalVisible} 
         item={itemSeleccionado}
         onClose={() => setModalVisible(false)}
         onSave={(comentario, costoExtras) => {
-          
           updateItemExtras(indexSeleccionado, comentario, costoExtras); 
-          setModalVisible(false); // cerramos el modal
+          setModalVisible(false); 
         }}
       />
 
@@ -182,7 +240,6 @@ const handleSendOrder = () => {
           setModalPrecioVisible(false);
         }}
       />
-
     </View>
   );
 }

@@ -1,12 +1,50 @@
 import { StatusBar } from 'expo-status-bar';
 import React, {useState} from 'react';
 import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'react-native';
+import { supabase } from "../../supabase_db/supabaseClient"
+
+import { OrderContext } from '../Context/OrderContext';
+import { useContext } from 'react';
 
 const icon = require('../../assets/images/Logo restaurante circular.jpg');
 
 export default function LogInScreen({ navigation }) {
-  const [id, setId] = useState("")
-  const [password, setPassword] = useState("")
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+
+  const { setUserData } = useContext(OrderContext);
+
+  const handleLogin = async () => {
+
+    console.log("CLICK LOGIN")
+    
+    const { data, error } = await supabase
+      .from ("users")
+      .select("*")
+      .eq("name", name)
+      .eq("password", password)
+      .single()
+    console.log(data)
+      
+    console.log("data:", data)
+    console.log("error:", error)
+
+    if (error || !data) {
+      alert("Datos incorrectos");
+      return;
+    }
+
+    setUserData(data); // Guardamos los datos del usuario en el contexto
+
+    const updateRes = await supabase
+      .from("users")
+      .update({ last_LogIn: new Date() })
+      .eq("user_id", data.user_id)
+
+    console.log("update:", updateRes.error)
+
+    navigation.navigate("Menu")
+  }
 
   return (
     <View style={styles.container}>
@@ -18,8 +56,8 @@ export default function LogInScreen({ navigation }) {
         
         <TextInput 
           style={styles.input} 
-          value={id} 
-          onChangeText={setId} 
+          value={name} 
+          onChangeText={setName} 
           placeholder="Ingrese su ID"
         />
         
@@ -34,7 +72,7 @@ export default function LogInScreen({ navigation }) {
         />
 
         <TouchableOpacity style={styles.button}
-        onPressIn={() => navigation.navigate("Menu")}>
+        onPressIn={handleLogin}>
           <Text style={styles.buttonText}>ENTRAR</Text>
           
         </TouchableOpacity>
