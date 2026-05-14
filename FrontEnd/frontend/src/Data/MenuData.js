@@ -6,10 +6,10 @@
 
 export const MENU_DATA = {
     'Pollos Asados': [
-      { id: 'po1', name: '1 Pollo Asado (entero)', price: 220, desc: 'Con arroz, frijoles, tortillas' },
-      { id: 'po2', name: '1/2 Pollo Asado', price: 140, desc: 'Con arroz, frijoles, tortillas' },
-      { id: 'po3', name: '1 1/2 Pollos Asados', price: 330, desc: 'Con arroz, frijoles, tortillas' },
-      { id: 'po4', name: '1/4 Pollo Asado', price: 100, desc: 'Con arroz, frijoles, tortillas' },
+      { id: 'po1', name: '1 y 1/2 Pollos Asados', price: 330, desc: 'Para 6 personas' },
+      { id: 'po2', name: '1 Pollo Asado (entero)', price: 220, desc: 'Para 4 personas' },
+      { id: 'po3', name: '1/2 Pollo Asado', price: 140, desc: 'Para 2 personas' },
+      { id: 'po4', name: '1/4 Pollo Asado', price: 100 },
     ],
     'Carne Asada': [
       { id: 'ca1', name: 'Orden de Carne', price: 150 },

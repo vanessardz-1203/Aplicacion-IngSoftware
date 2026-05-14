@@ -49,7 +49,7 @@ export default function OrderSummaryScreen({ navigation }) {
         const { error: updateError } = await supabase
           .from('orders')
           .update(orderPayload)
-          .eq('order_id', editingOrderId); // Asumiendo que el ID en supabase es 'order_id'
+          .eq('order_id', editingOrderId); 
         
         if (updateError) throw updateError;
         currentOrderId = editingOrderId;
@@ -83,7 +83,8 @@ export default function OrderSummaryScreen({ navigation }) {
           price: precioFinal,
           quantity: item.quantity,
           subtotal: precioFinal * item.quantity,
-          notes: item.comentario || null
+          notes: item.comentario || null,
+          num_personas: item.personas || null 
         };
       });
 
@@ -107,7 +108,6 @@ export default function OrderSummaryScreen({ navigation }) {
       );
 
     } catch (error) {
-      // Usamos console.log y solo pedimos el texto del error, no el objeto completo
       console.log("Error de Supabase:", error?.message || "Error desconocido");
       Alert.alert(
         "No se pudo guardar", 
@@ -149,6 +149,9 @@ export default function OrderSummaryScreen({ navigation }) {
           <Text style={styles.quantityBadge}>{item.quantity}x</Text>
           <View>
             <Text style={styles.itemName}>{item.name}</Text>
+            
+            {item.personas ? <Text style={styles.personasTag}>[Para {item.personas} platos]</Text> : null}
+            
             {item.comentario ? <Text style={styles.notaGrisText}>{item.comentario}</Text> : null}
           </View>
         </View>
@@ -252,6 +255,9 @@ const styles = StyleSheet.create({
   card: { backgroundColor: 'white', padding: 10, paddingHorizontal: 15, borderRadius: 10, marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', elevation: 2 },
   quantityBadge: { fontSize: 18, fontWeight: 'bold', color: '#FF6347', marginRight: 10 },
   itemName: { fontSize: 16, color: '#333' }, 
+  
+  personasTag: { fontSize: 13, color: '#FF6347', fontWeight: 'bold', marginTop: 2 },
+  
   notaGrisText: { fontSize: 12, color: '#888', fontStyle: 'italic', marginTop: 2 }, 
   itemPrice: { fontSize: 16, color: '#4CAF50', fontWeight: 'bold', marginRight: 15 },
   actionButton: { padding: 5, marginLeft: 10 }, 

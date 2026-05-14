@@ -5,8 +5,11 @@ import { OrderContext } from '../Context/OrderContext';
 
 export default function MenuScreen({ navigation }) { 
 
-  
   const { userData } = useContext(OrderContext);
+  
+  // Extraemos el rol, convirtiéndolo a minúsculas para evitar errores (ej. "Cocinero" vs "cocinero")
+  // Si por alguna razón falla, se asigna 'mesero' por seguridad.
+  const miRol = userData?.rol?.toLowerCase() || 'mesero';
 
   const handleLogOut = async () => {
     const { error } = await supabase
@@ -21,24 +24,28 @@ export default function MenuScreen({ navigation }) {
   return (
     <View style={styles.container}>
 
-      
-      <Text style={styles.title}>¡Hola, {userData?.name || 'Mesero'}!</Text> 
-      <Text style={styles.subtitle}>¿Qué deseas hacer hoy?</Text>
+      {/* Saludo dinámico */}
+      <Text style={styles.title}>¡Hola, {userData?.name || 'mesero'}!</Text> 
+      <Text style={styles.subtitle}>Panel de: {miRol}</Text>
 
-      {/* Opcion 1: Nueva Orden */}
-      <TouchableOpacity 
-        style={styles.buttonMain} 
-        onPress={() => navigation.navigate('NuevaOrden')} 
-      >
-        <Text style={styles.textButton}> Nueva Orden</Text>
-      </TouchableOpacity>
+      {/* Opcion 1: Nueva Orden (Exclusivo para meseros y cajeros) */}
+      {(miRol === 'mesero' || miRol === 'cajero') && (
+        <TouchableOpacity 
+          style={styles.buttonMain} 
+          onPress={() => navigation.navigate('NuevaOrden')} 
+        >
+          <Text style={styles.textButton}> Nueva Orden</Text>
+        </TouchableOpacity>
+      )}
 
-      {/* Opcion 2: Ver Órdenes Activas */}
+      {/* Opcion 2: Ver Órdenes Activas (Todos pueden verlo, pero el texto cambia para el cocinero) */}
       <TouchableOpacity 
         style={styles.buttonSecondary} 
         onPress={() => navigation.navigate('OrdenesActivas')} 
       >
-        <Text style={styles.textButton}> Ver Órdenes Activas</Text>
+        <Text style={styles.textButton}>
+          {miRol === 'cocinero' ? 'Ver Pedidos de Cocina' : 'Ver Órdenes Activas'}
+        </Text>
       </TouchableOpacity>
 
       {/* Separador */}
@@ -74,6 +81,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: '#666',
     marginBottom: 40,
+    textTransform: 'capitalize', // Hace que la primera letra del rol sea mayúscula
   },
   buttonMain: {
     backgroundColor: '#FF6347',
