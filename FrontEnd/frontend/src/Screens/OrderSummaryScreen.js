@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, SectionList, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native'; // ✨ Cambiamos FlatList por SectionList
+import { View, Text, SectionList, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native'; 
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { OrderContext } from '../Context/OrderContext';
@@ -22,7 +22,7 @@ export default function OrderSummaryScreen({ navigation }) {
 
   const agruparPorPlatos = () => {
     const grupos = orderItems.reduce((acc, item, index) => {
-      const plato = item.num_plato || 0; // Si no tiene plato asignado, es el 0 (Centro de mesa)
+      const plato = item.num_plato || 0; 
       if (!acc[plato]) {
         acc[plato] = [];
       }
@@ -53,10 +53,13 @@ export default function OrderSummaryScreen({ navigation }) {
       }, 0);
 
       const orderPayload = {
-        order_type: orderInfo.tipo === 'ComerAquí' ? 'comer_aqui' : 'para_llevar',
+        order_type: orderInfo.tipo === 'ComerAquí' ? 'comer_aqui' : (orderInfo.tipo === 'Domicilio' ? 'domicilio' : 'para_llevar'),
         mesa: orderInfo.mesa || null,
-        name_client: orderInfo.nombre || null,
+        nombre_cliente: orderInfo.nombre || null,
         telefono: orderInfo.telefono || null,
+        direccion: orderInfo.direccion || null,
+        metodo_takeout: orderInfo.metodo_takeout || null,
+        detalles_vehiculo: orderInfo.detalles_vehiculo || null,
         total_price: calculatedTotal
       };
 
@@ -93,6 +96,7 @@ export default function OrderSummaryScreen({ navigation }) {
         const precioFinal = item.priceFinal ? item.priceFinal : item.price;
         return {
           order_id: currentOrderId,
+          producto_id: item.id || 'sin-id',
           nom_platillo: item.name,
           price: precioFinal,
           quantity: item.quantity,
@@ -148,8 +152,28 @@ export default function OrderSummaryScreen({ navigation }) {
   const handleAddMore = () => {
     if (orderInfo?.tipo === 'ComerAquí') {
       navigation.navigate('MenuCategories'); 
+    } else if (orderInfo?.tipo === 'Domicilio') {
+      navigation.navigate('Domicilio');
     } else {
       navigation.navigate('ParaLlevar');
+    }
+  };
+
+  const obtenerTituloOrden = () => {
+    if (orderInfo?.tipo === 'ComerAquí') {
+      return `Mesa: ${orderInfo.mesa}`;
+    }
+    
+    if (orderInfo?.tipo === 'Domicilio') {
+      return `Domicilio: ${orderInfo?.nombre || 'Sin nombre'}`;
+    }
+
+    if (orderInfo?.nombre && orderInfo.nombre.trim() !== '') {
+      return `Para Llevar: ${orderInfo.nombre}`;
+    } else if (orderInfo?.detalles_vehiculo) {
+      return `Vehículo: ${orderInfo.detalles_vehiculo}`;
+    } else {
+      return `Para Llevar: Sin nombre`;
     }
   };
 
@@ -175,7 +199,7 @@ export default function OrderSummaryScreen({ navigation }) {
           <TouchableOpacity 
             onPress={() => {
               setItemSeleccionado(item);
-              setIndexSeleccionado(idx); // oh si oh no oh si oh no
+              setIndexSeleccionado(idx); 
               setModalVisible(true);       
             }} 
             style={styles.actionButton}
@@ -206,7 +230,7 @@ export default function OrderSummaryScreen({ navigation }) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.infoText}>
-          {orderInfo?.mesa ? `Mesa: ${orderInfo.mesa}` : `Para Llevar: ${orderInfo?.nombre || 'Sin nombre'}`}
+          {obtenerTituloOrden()}
         </Text>
       </View>
 
@@ -214,7 +238,7 @@ export default function OrderSummaryScreen({ navigation }) {
 
       <SectionList
         sections={sectionsData}
-        keyExtractor={(item) => item.originalIndex.toString()}
+        keyExtractor={(item, index) => item?.originalIndex !== undefined ? item.originalIndex.toString() : index.toString()}
         renderItem={renderItem}
         renderSectionHeader={({ section: { title } }) => (
           <View style={styles.sectionHeaderContainer}>
@@ -223,7 +247,7 @@ export default function OrderSummaryScreen({ navigation }) {
         )}
         contentContainerStyle={{ paddingBottom: 120 }}
         ListEmptyComponent={<Text style={styles.emptyText}> El carrito está vacío. </Text>}
-        stickySectionHeadersEnabled={false} // Para que no se quede pegado arriba feo al scrollear
+        stickySectionHeadersEnabled={false} 
       />
 
       <View style={styles.footer}>

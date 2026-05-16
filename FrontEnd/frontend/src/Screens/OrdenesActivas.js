@@ -31,12 +31,18 @@ export default function OrdenesActivas({ navigation }) {
         status: 'En Cocina', 
         timestamp: new Date(order.created_at).toLocaleTimeString(),
         info: {
-          tipo: order.order_type === 'comer_aqui' ? 'ComerAquí' : 'ParaLlevar',
+          tipo: order.order_type,
           mesa: order.mesa,
-          nombre: order.name_client
+          nombre: order.nombre_cliente, 
+          telefono: order.telefono,
+          direccion: order.direccion,
+          metodo_takeout: order.metodo_takeout,
+          detalles_vehiculo: order.detalles_vehiculo
         },
         items: order.order_items.map(item => ({
+          id: item.producto_id, 
           name: item.nom_platillo,
+          price: item.price, 
           quantity: item.quantity,
           comentario: item.notes,
           personas: item.num_personas || item.personas,
@@ -70,7 +76,7 @@ export default function OrdenesActivas({ navigation }) {
     };
   }, []);
 
-const handleDeleteOrder = async (orderId) => {
+  const handleDeleteOrder = async (orderId) => {
     Alert.alert(
       "¿Finalizar Orden?",
       "¿Estás seguro de que esta orden ya está lista?",
@@ -87,12 +93,10 @@ const handleDeleteOrder = async (orderId) => {
               .eq('order_id', orderId)
               .select(); 
             
-            console.log("Respuesta de Supabase -> Data:", data, "Error:", error);
-
             if (error) {
               Alert.alert("Error de Supabase", error.message);
             } else if (!data || data.length === 0) {
-              Alert.alert("Aviso", "Supabase no marcó error, pero tampoco actualizó nada (Posible bloqueo de RLS o nombre de columna incorrecto).");
+              Alert.alert("Aviso", "Supabase no marcó error, pero tampoco actualizó nada.");
             } else {
               fetchOrders(); 
             }
@@ -129,14 +133,29 @@ const handleDeleteOrder = async (orderId) => {
 
     const gruposPlatos = agruparPorPlatos(item.items);
 
+    const obtenerTitulo = (info) => {
+      if (info.tipo === 'comer_aqui') return `MESA: ${info.mesa}`;
+      if (info.tipo === 'domicilio') return `DOMICILIO: ${info.nombre || 'Sin nombre'}`;
+      
+      if (info.tipo === 'para_llevar') {
+        if (info.metodo_takeout === 'vehiculo') {
+          return `VEHÍCULO: ${info.detalles_vehiculo} ${info.nombre ? `(${info.nombre})` : ''}`;
+        }
+        return `A PIE: ${info.nombre || 'Sin nombre'}`;
+      }
+      return 'Orden Especial';
+    };
+
     return (
       <View style={styles.ticketCard}>
         <View style={styles.ticketHeader}>
-          <View>
-            <Text style={styles.ticketTitle}>
-              {item.info.tipo === 'ComerAquí' ? `Mesa ${item.info.mesa}` : `${item.info.nombre}`}
-            </Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.ticketTitle}>{obtenerTitulo(item.info)}</Text>
             <Text style={styles.timestamp}>{item.timestamp}</Text>
+            
+            {item.info.tipo === 'domicilio' && item.info.direccion ? (
+               <Text style={styles.deliveryText}>Dir: {item.info.direccion} | Tel: {item.info.telefono}</Text>
+            ) : null}
           </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -203,7 +222,7 @@ const handleDeleteOrder = async (orderId) => {
         <FlatList
           data={orders}
           renderItem={renderOrderTicket}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={(item, index) => item?.id ? item.id.toString() : index.toString()}
           onRefresh={fetchOrders}
           refreshing={loading}
           contentContainerStyle={{ padding: 15, paddingBottom: 100 }}
@@ -225,6 +244,7 @@ const styles = StyleSheet.create({
   ticketHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 15, backgroundColor: '#333' },
   ticketTitle: { fontSize: 18, fontWeight: 'bold', color: 'white' },
   timestamp: { color: '#ccc', fontSize: 14, marginTop: 2 },
+  deliveryText: { color: '#bbb', fontSize: 12, fontStyle: 'italic', marginTop: 4 }, // Estilo para info de domicilio
   statusContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FF6347', paddingVertical: 5, paddingHorizontal: 15 },
   statusText: { color: 'white', fontWeight: 'bold', marginLeft: 5, fontSize: 12 },
   itemsList: { padding: 15 },

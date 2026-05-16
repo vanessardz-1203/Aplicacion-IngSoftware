@@ -7,11 +7,12 @@ export default function NuevaOrden({ navigation }) {
   // Función para manejar la navegación según la opción
   const handleSelection = (tipo) => {
     if (tipo === 'ComerAquí') {
-    navigation.navigate('MenuCategories'); 
-  } else {
-    navigation.navigate("ParaLlevar");
-  }
-
+      navigation.navigate('MenuCategories'); 
+    } else if (tipo === 'ParaLlevar') {
+      navigation.navigate("ParaLlevar");
+    } else if (tipo === 'Domicilio') {
+      navigation.navigate("Domicilio"); 
+    }
   };
 
   return (
@@ -23,17 +24,26 @@ export default function NuevaOrden({ navigation }) {
         style={[styles.bigButton, styles.buttonDineIn]} 
         onPress={() => handleSelection('ComerAquí')}
       >
-        <MaterialIcons name="restaurant" size={80} color="white" />
+        <MaterialIcons name="restaurant" size={70} color="white" />
         <Text style={styles.buttonText}>Comer Aquí</Text>
       </TouchableOpacity>
 
-      {/* BOTÓN 2: PARA LLEVAR */}
+      {/* BOTÓN 2: PARA LLEVAR (Pasa a recoger) */}
       <TouchableOpacity 
         style={[styles.bigButton, styles.buttonTakeOut]} 
         onPress={() => handleSelection('ParaLlevar')}
       >
-        <MaterialIcons name="shopping-bag" size={80} color="white" />
-        <Text style={styles.buttonText}>Para Llevar</Text>
+        <MaterialIcons name="directions-walk" size={70} color="white" />
+        <Text style={styles.buttonText}>Pasa a Recoger</Text>
+      </TouchableOpacity>
+
+      {/* BOTÓN 3: A DOMICILIO */}
+      <TouchableOpacity 
+        style={[styles.bigButton, styles.buttonDelivery]} 
+        onPress={() => handleSelection('Domicilio')}
+      >
+        <MaterialIcons name="two-wheeler" size={70} color="white" />
+        <Text style={styles.buttonText}>A Domicilio</Text>
       </TouchableOpacity>
 
     </View>
@@ -55,29 +65,31 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   bigButton: {
-    flex: 1, // Hace que los botones se estiren para ocupar espacio
-    marginVertical: 10, // Espacio entre botones
+    flex: 1, 
+    marginVertical: 10, 
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 5, // Sombra en Android
+    elevation: 5, 
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  // Estilo específico para Comer Aquí 
   buttonDineIn: {
     backgroundColor: '#FF6347', 
-    maxHeight: 250, // Limitamos la altura 
+    maxHeight: 180, 
   },
-  // Estilo específico para Llevar 
   buttonTakeOut: {
     backgroundColor: '#4682B4', 
-    maxHeight: 250,
+    maxHeight: 180,
+  },
+  buttonDelivery: {
+    backgroundColor: '#4CAF50', 
+    maxHeight: 180,
   },
   buttonText: {
     color: 'white',
-    fontSize: 28, 
+    fontSize: 26, 
     fontWeight: 'bold',
     marginTop: 10,
   },

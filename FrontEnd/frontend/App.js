@@ -2,8 +2,6 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import 'react-native-url-polyfill/auto';
-
-// IMPORTACIONES
 import LoginScreen from './src/Screens/LogInScreen';
 import MenuScreen from './src/Screens/MenuScreen';
 import NuevaOrden from './src/Screens/NuevaOrden';
@@ -11,10 +9,9 @@ import OrdenesActivas from './src/Screens/OrdenesActivas';
 import MenuCategoriesScreen from './src/Screens/MenuCategoriesScreen'; 
 import FoodMenuScreen from './src/Screens/FoodMenuScreen'; 
 import ParaLlevarScreen from './src/Screens/ParaLlevarScreen'; 
-
 import { OrderProvider } from './src/Context/OrderContext';
-
-import OrderSummaryScreen from './src/Screens/OrderSummaryScreen'; 
+import OrderSummaryScreen from './src/Screens/OrderSummaryScreen';
+import DomicilioScreen from './src/Screens/DomicilioScreen'; 
 
 const Stack = createNativeStackNavigator();
 
@@ -31,6 +28,7 @@ export default function App() {
         <Stack.Screen name="OrdenesActivas" component={OrdenesActivas} options={{ title: 'En Cocina' }} />
         <Stack.Screen name="ParaLlevar" component={ParaLlevarScreen} options={{ title: 'Para Llevar' }} />
         <Stack.Screen name="OrderSummary" component={OrderSummaryScreen} options={{ title: 'Confirmar Orden' }} />
+        <Stack.Screen name="Domicilio" component={DomicilioScreen} options={{ title: 'Orden a Domicilio' }} />
       </Stack.Navigator>
     </NavigationContainer>
   </OrderProvider> 

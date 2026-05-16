@@ -18,39 +18,47 @@ const categories = [
   { id: '12', title: 'Botanas y Extras', icon: 'tapas', color: '#2E8B57' },
 ];
 
-export default function ParaLlevarScreen({ navigation }) {
+export default function DomicilioScreen({ navigation }) {
   const [nombre, setNombre] = useState('');
-  
-  const [metodoTakeout, setMetodoTakeout] = useState('pie'); 
-  const [detallesVehiculo, setDetallesVehiculo] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [direccion, setDireccion] = useState('');
 
   const { setOrderInfo } = useContext(OrderContext);
 
- const validarFormulario = () => {
-    // El nombre SOLO es obligatorio si el cliente viene "A pie"
-    if (metodoTakeout === 'pie' && (!nombre || nombre.trim() === "")) {
-      const mensaje = "Por favor escribe el nombre o apodo del cliente antes de continuar.";
-      Platform.OS === 'web' ? window.alert(mensaje) : Alert.alert("Faltan datos", mensaje);
+  const validarFormulario = () => {
+    if (!nombre || nombre.trim() === "") {
+      const msg = "Por favor escribe el nombre del cliente antes de continuar.";
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert("Faltan datos", msg);
       return false;
     }
 
-    // Si es en vehículo, el nombre se vuelve opcional, pero la descripción del carro es obligatoria
-    if (metodoTakeout === 'vehiculo' && (!detallesVehiculo || detallesVehiculo.trim() === "")) {
-      const mensaje = "Seleccionaste 'En Vehículo'. Por favor describe el carro (ej. Camioneta roja).";
-      Platform.OS === 'web' ? window.alert(mensaje) : Alert.alert("Faltan datos", mensaje);
+    if (!telefono || telefono.trim() === "") {
+      const msg = "Por favor completa el teléfono del cliente.";
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert("Faltan datos", msg);
+      return false;
+    }
+
+    if (telefono.length !== 10) {
+      const msg = "El número de teléfono debe tener 10 dígitos exactos.";
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert("Teléfono Inválido", msg);
+      return false;
+    }
+
+    if (!direccion || direccion.trim() === "") {
+      const msg = "Por favor ingresa la dirección de entrega.";
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert("Faltan datos", msg);
       return false;
     }
 
     return true;
   };
 
-
   const guardarDatosEnContexto = () => {
     setOrderInfo({ 
-        tipo: 'Para Llevar', 
+        tipo: 'Domicilio', 
         nombre: nombre, 
-        metodo_takeout: metodoTakeout,
-        detalles_vehiculo: metodoTakeout === 'vehiculo' ? detallesVehiculo : null
+        telefono: telefono,
+        direccion: direccion
     });
   };
 
@@ -84,6 +92,7 @@ export default function ParaLlevarScreen({ navigation }) {
   return (
     <View style={styles.container}>
       
+      {/* FORMULARIO DE CLIENTE A DOMICILIO */}
       <View style={styles.headerContainer}>
         
         {/* Campo Nombre */}
@@ -91,7 +100,7 @@ export default function ParaLlevarScreen({ navigation }) {
           <Text style={styles.label}>Nombre del Cliente:</Text>
           <TextInput
             style={styles.input}
-            placeholder="Ej. El Tiko"
+            placeholder="Ej. Juan Perez"
             placeholderTextColor="#999"
             value={nombre}
             onChangeText={setNombre}
@@ -101,38 +110,37 @@ export default function ParaLlevarScreen({ navigation }) {
 
         <View style={styles.divider} />
 
-        <Text style={styles.label}>¿Cómo pasará por la orden?</Text>
-        <View style={styles.metodoContainer}>
-          <TouchableOpacity 
-            style={[styles.metodoBoton, metodoTakeout === 'pie' && styles.metodoBotonActivo]}
-            onPress={() => setMetodoTakeout('pie')}
-          >
-            <MaterialIcons name="directions-walk" size={24} color={metodoTakeout === 'pie' ? "white" : "#666"} />
-            <Text style={[styles.metodoTexto, metodoTakeout === 'pie' && styles.metodoTextoActivo]}>A pie</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.metodoBoton, metodoTakeout === 'vehiculo' && styles.metodoBotonActivo]}
-            onPress={() => setMetodoTakeout('vehiculo')}
-          >
-            <MaterialIcons name="directions-car" size={24} color={metodoTakeout === 'vehiculo' ? "white" : "#666"} />
-            <Text style={[styles.metodoTexto, metodoTakeout === 'vehiculo' && styles.metodoTextoActivo]}>En vehículo</Text>
-          </TouchableOpacity>
+        {/* Campo Teléfono */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Teléfono (10 dígitos):</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ej. 826..."
+            placeholderTextColor="#999"
+            value={telefono}
+            onChangeText={(text) => {
+               const soloNumeros = text.replace(/[^0-9]/g, "");
+               setTelefono(soloNumeros);
+            }}
+            keyboardType="numeric"
+            maxLength={10}
+          />
         </View>
 
-        {metodoTakeout === 'vehiculo' && (
-          <View style={[styles.inputGroup, { marginTop: 15 }]}>
-            <Text style={styles.label}>Color y modelo del carro:</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ej. Camioneta roja"
-              placeholderTextColor="#999"
-              value={detallesVehiculo}
-              onChangeText={setDetallesVehiculo}
-              maxLength={40}
-            />
-          </View>
-        )}
+        <View style={styles.divider} />
+
+        {/* Campo Dirección */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Dirección de Entrega:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Calle, Número, Colonia o Referencias"
+            placeholderTextColor="#999"
+            value={direccion}
+            onChangeText={setDireccion}
+            maxLength={100}
+          />
+        </View>
 
       </View>
 
@@ -194,38 +202,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#eee',
     marginVertical: 10,
   },
-  
-  metodoContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 5,
-  },
-  metodoBoton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    marginHorizontal: 5,
-    backgroundColor: '#f9f9f9',
-  },
-  metodoBotonActivo: {
-    backgroundColor: '#4682B4',
-    borderColor: '#4682B4',
-  },
-  metodoTexto: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#666',
-    marginLeft: 8,
-  },
-  metodoTextoActivo: {
-    color: 'white',
-  },
-
   subHeader: {
     fontSize: 18,
     color: '#666',

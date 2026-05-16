@@ -24,8 +24,7 @@ export default function ModalComentarios({ visible, onClose, item, onSave }) {
   if (!item) return null;
 
   const renderExtras = () => {
-    const id = item.id;
-
+    const id = item.id || '';
     if (id.startsWith('be')) { // bebidas
       if (id === 'be5') {
         return (
