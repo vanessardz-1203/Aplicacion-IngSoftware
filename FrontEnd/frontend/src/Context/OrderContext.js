@@ -3,35 +3,44 @@ import React, { createContext, useState } from 'react';
 export const OrderContext = createContext();
 
 export const OrderProvider = ({ children }) => {
-  // El carrito temporal (lo que están pidiendo ahorita)
   const [orderItems, setOrderItems] = useState([]);
   const [orderInfo, setOrderInfo] = useState({});
-
-
   const [userData, setUserData] = useState(null);
 
-  //  Lista de órdenes ya confirmadas (para "Órdenes Activas")
   const [activeOrders, setActiveOrders] = useState([]);
+  const [editingOrderId, setEditingOrderId] = useState(null); 
 
-  const [editingOrderId, setEditingOrderId] = useState(null); // estado para recordar la orden que se esta editando
+  
+  const [platoActivo, setPlatoActivo] = useState(0); 
 
-  // Funciones del carrito temporal
 
-  // Agg product
   const addItemsToOrder = (items) => {
-    setOrderItems((prevItems) => [...prevItems, ...items]);
+    setOrderItems((prevItems) => {
+      let updatedItems = [...prevItems];
+
+      items.forEach(newItem => {
+        const existingIndex = updatedItems.findIndex(
+          item => item.id === newItem.id && item.num_plato === platoActivo
+        );
+
+        if (existingIndex >= 0) {
+          updatedItems[existingIndex].quantity += newItem.quantity;
+        } else {
+          
+          updatedItems.push({ ...newItem, num_plato: platoActivo });
+        }
+      });
+
+      return updatedItems;
+    });
   };
 
-  //  Restar cantidad 
   const decreaseItemQuantity = (index) => {
     setOrderItems(currentItems => {
-      
       const newItems = [...currentItems];
-      // Si hay más de 1, restamos uno.
       if (newItems[index].quantity > 1) {
         newItems[index] = { ...newItems[index], quantity: newItems[index].quantity - 1 };
       } else {
-        // Si solo queda 1 y le restan, lo borramos de la lista.
         newItems.splice(index, 1);
       }
       return newItems;
@@ -42,47 +51,39 @@ export const OrderProvider = ({ children }) => {
     setOrderItems((prevItems) => prevItems.filter((_, index) => index !== indexToRemove));
   };
 
-  // Limpiar el carrito temporal
   const clearOrder = () => {
     setOrderItems([]);
     setOrderInfo({});
+    setPlatoActivo(0); 
   };
 
-//Para guardar extras y recalcular precio 
   const updateItemExtras = (index, comentario, costoExtras) => {
     const newOrderItems = [...orderItems];
     const item = newOrderItems[index];
 
-    // Guardamos el comentario y el costo de los extras
     item.comentario = comentario;
     item.costoExtras = costoExtras; 
-    
-    // Calculamos su nuevo precio unitario final (precio base + extras)
     item.priceFinal = item.price + costoExtras;
 
     setOrderItems(newOrderItems);
   };
 
-
   const updateItemPrice = (index, precioManual) => {
     const newOrderItems = [...orderItems];
-    // Reemplazamos el precio final por el que escribieron manualmente
     newOrderItems[index].priceFinal = precioManual;
     setOrderItems(newOrderItems);
   };
 
   const finalizeOrder = () => {
     if (editingOrderId) {
-      // Buscar la ordemn que se está editando y actualizarla en lugar de crear una nueva
       const updatedOrders = activeOrders.map(order => 
         order.id === editingOrderId 
           ? { ...order, info: orderInfo, items: orderItems } 
           : order
       );
       setActiveOrders(updatedOrders);
-      setEditingOrderId(null); // Limpiamos el modo edición
+      setEditingOrderId(null); 
     } else {
-      // Lo que se tenía antes
       const newFinishedOrder = {
         id: Math.random().toString(36).substr(2, 9),
         timestamp: new Date().toLocaleTimeString(),
@@ -93,30 +94,27 @@ export const OrderProvider = ({ children }) => {
       setActiveOrders([...activeOrders, newFinishedOrder]);
     }
 
-    // Limpiamos todo al terminar
     setOrderInfo({});
     setOrderItems([]);
+    setPlatoActivo(0); 
   };
 
-  // funcion para eliminar orden de la lista de ordenes activas (cuando se marca como "Entregada")
   const removeActiveOrder = (orderId) => {
     setActiveOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
   };
 
-  // funcion para cargar una orden activa al carrito temporal (cuando se quiere editar una orden ya enviada a cocina)
   const loadOrderForEditing = (order) => {
     setOrderInfo(order.info);
     setOrderItems(order.items);
-    setEditingOrderId(order.id); // Guardamos su ID para no duplicarla después
+    setEditingOrderId(order.id); 
+    setPlatoActivo(0); 
   };
-
 
   return (
     <OrderContext.Provider value={{ 
       userData, 
       setUserData,
       orderItems,
-      orderItems, 
       orderInfo, 
       setOrderInfo,
       addItemsToOrder, 
@@ -129,8 +127,9 @@ export const OrderProvider = ({ children }) => {
       finalizeOrder,
       removeActiveOrder, 
       loadOrderForEditing,
-      editingOrderId
-      
+      editingOrderId,
+      platoActivo,
+      setPlatoActivo
     }}>
       {children}
     </OrderContext.Provider>

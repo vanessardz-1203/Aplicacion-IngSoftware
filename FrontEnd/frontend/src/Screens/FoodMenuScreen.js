@@ -1,20 +1,47 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native'; 
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Switch } from 'react-native'; 
 import { MaterialIcons } from '@expo/vector-icons';
 import { MENU_DATA } from '../Data/MenuData'; 
 import { OrderContext } from '../Context/OrderContext'; 
 
 export default function FoodMenuScreen({ route, navigation }) {
   const { categoryName } = route?.params || { categoryName: 'Pollos Asados' };
-  const currentMenu = MENU_DATA[categoryName] || MENU_DATA['default'] || [];
+  
+  const [isHarina, setIsHarina] = useState(false);
+
+  let currentMenu = MENU_DATA[categoryName] || MENU_DATA['default'] || [];
+  if (categoryName === 'Tacos') {
+    currentMenu = isHarina ? (MENU_DATA['Tacos Harina'] || []) : (MENU_DATA['Tacos Maiz'] || []);
+  }
+
+  const allPossibleItems = categoryName === 'Tacos' 
+    ? [...(MENU_DATA['Tacos Maiz'] || []), ...(MENU_DATA['Tacos Harina'] || [])]
+    : currentMenu;
   
   const [quantities, setQuantities] = useState({});
-  const { addItemsToOrder } = useContext(OrderContext); 
+  const { addItemsToOrder, platoActivo, setPlatoActivo } = useContext(OrderContext); 
 
   const [modalVisible, setModalVisible] = useState(false);
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const [cantidadPersonas, setCantidadPersonas] = useState(1);
   const [personasInfo, setPersonasInfo] = useState({}); 
+
+  const handleCambiarPlato = (incremento) => {
+    const nuevoPlato = Math.max(0, platoActivo + incremento);
+    
+    if (nuevoPlato !== platoActivo) {
+      const tieneCosasSinGuardar = Object.values(quantities).some(q => q > 0);
+      
+      if (tieneCosasSinGuardar) {
+        Alert.alert(
+          "Productos sin agregar",
+          "Primero presiona 'Agregar a la Orden' para guardar lo de esta persona antes de pasar al siguiente plato."
+        );
+        return;
+      }
+      setPlatoActivo(nuevoPlato);
+    }
+  };
 
   const updateQuantity = (id, increment) => {
     if (!id) return; 
@@ -50,7 +77,6 @@ export default function FoodMenuScreen({ route, navigation }) {
   };
 
   const confirmarModal = () => {
-    
     if (!itemSeleccionado || !itemSeleccionado.id) return; 
 
     updateQuantity(itemSeleccionado.id, 1); 
@@ -60,13 +86,21 @@ export default function FoodMenuScreen({ route, navigation }) {
 
   const handleConfirm = () => {
     const itemsToAdd = [];
-    currentMenu.forEach(item => {
+    
+    allPossibleItems.forEach(item => {
       if (!item || !item.id) return; 
 
       const qty = quantities[item.id] || 0;
       if (qty > 0) {
+        let finalName = item.name;
+        
+        if (categoryName === 'Tacos') {
+            finalName = item.id.includes('-h') ? `${item.name} (Harina)` : `${item.name} (Maíz)`;
+        }
+
         itemsToAdd.push({ 
           ...item, 
+          name: finalName,
           quantity: qty,
           personas: personasInfo[item.id] || null 
         });
@@ -81,12 +115,15 @@ export default function FoodMenuScreen({ route, navigation }) {
     if (addItemsToOrder) {
       addItemsToOrder(itemsToAdd);
       Alert.alert('Agregado', 'Productos agregados al carrito.');
-      navigation.goBack(); 
+      setQuantities({});
+      setPersonasInfo({});
     }
   };
 
   const renderItem = ({ item }) => {
     if (!item) return null; 
+
+    const currentQty = quantities[item.id] || 0;
 
     return (
       <View style={styles.card}>
@@ -105,7 +142,7 @@ export default function FoodMenuScreen({ route, navigation }) {
             <MaterialIcons name="remove" size={24} color="white" />
           </TouchableOpacity>
           
-          <Text style={styles.quantityText}>{quantities[item.id] || 0}</Text>
+          <Text style={styles.quantityText}>{currentQty}</Text>
           
           <TouchableOpacity onPress={() => handlePlus(item)} style={styles.btnPlus}>
             <MaterialIcons name="add" size={24} color="white" />
@@ -117,7 +154,47 @@ export default function FoodMenuScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{categoryName}</Text>
+      
+      <View style={styles.topHeader}>
+        <Text style={styles.title}>{categoryName}</Text>
+        
+        {categoryName === 'Tacos' && (
+          <View style={styles.switchContainer}>
+            <Text style={[styles.switchLabel, !isHarina && styles.activeLabel]}>Maíz</Text>
+            <Switch
+              value={isHarina}
+              onValueChange={setIsHarina}
+              trackColor={{ false: '#D3D3D3', true: '#D3D3D3' }}
+              thumbColor={isHarina ? '#FF6347' : '#FBC02D'}
+            />
+            <Text style={[styles.switchLabel, isHarina && styles.activeLabel]}>Harina</Text>
+          </View>
+        )}
+        
+        <View style={styles.platoController}>
+          <Text style={styles.platoLabel}>Agregando a:</Text>
+          <View style={styles.platoSelector}>
+            <TouchableOpacity 
+              style={styles.platoBtn} 
+              onPress={() => handleCambiarPlato(-1)}
+            >
+              <MaterialIcons name="remove" size={20} color="#666" />
+            </TouchableOpacity>
+
+            <Text style={styles.platoActivoText}>
+              {platoActivo === 0 ? "Centro de mesa" : `Plato ${platoActivo}`}
+            </Text>
+
+            <TouchableOpacity 
+              style={styles.platoBtn} 
+              onPress={() => handleCambiarPlato(1)}
+            >
+              <MaterialIcons name="add" size={20} color="#666" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
       <FlatList
         data={currentMenu}
         renderItem={renderItem}
@@ -174,9 +251,22 @@ export default function FoodMenuScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F2F2', padding: 15 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#FF6347', marginBottom: 20, textAlign: 'center', marginTop: 10 },
-  card: { backgroundColor: 'white', padding: 15, borderRadius: 15, marginBottom: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 3 },
+  container: { flex: 1, backgroundColor: '#F2F2F2' },
+  
+  topHeader: { backgroundColor: 'white', padding: 15, borderBottomWidth: 1, borderBottomColor: '#ddd', marginBottom: 15, elevation: 2 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#FF6347', textAlign: 'center', marginBottom: 10 },
+  
+  switchContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 15, backgroundColor: '#f9f9f9', padding: 8, borderRadius: 20, alignSelf: 'center' },
+  switchLabel: { fontSize: 16, color: '#999', marginHorizontal: 10, fontWeight: '500' },
+  activeLabel: { color: '#333', fontWeight: 'bold' },
+
+  platoController: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9f9f9', padding: 8, borderRadius: 10 },
+  platoLabel: { fontSize: 14, color: '#666', marginRight: 10, fontWeight: '500' },
+  platoSelector: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 20, borderWidth: 1, borderColor: '#eee' },
+  platoBtn: { padding: 8, px: 12 },
+  platoActivoText: { fontSize: 16, fontWeight: 'bold', color: '#333', minWidth: 120, textAlign: 'center' },
+
+  card: { backgroundColor: 'white', padding: 15, borderRadius: 15, marginBottom: 15, marginHorizontal: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 3 },
   infoContainer: { flex: 1, paddingRight: 10 },
   itemName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   itemDesc: { fontSize: 14, color: '#888', fontStyle: 'italic', marginBottom: 5 },
@@ -189,6 +279,7 @@ const styles = StyleSheet.create({
   footer: { position: 'absolute', bottom: 20, left: 20, right: 20 },
   confirmButton: { backgroundColor: '#333', padding: 15, borderRadius: 50, alignItems: 'center', elevation: 5 },
   confirmText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
+  
   modalOverlay: { 
     position: 'absolute', 
     top: 0, bottom: 0, left: 0, right: 0, 

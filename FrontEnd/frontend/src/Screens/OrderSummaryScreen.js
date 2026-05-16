@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
+import { View, Text, SectionList, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native'; // ✨ Cambiamos FlatList por SectionList
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { OrderContext } from '../Context/OrderContext';
@@ -20,6 +20,26 @@ export default function OrderSummaryScreen({ navigation }) {
     return sum + (precioUnitario * item.quantity);
   }, 0);
 
+  const agruparPorPlatos = () => {
+    const grupos = orderItems.reduce((acc, item, index) => {
+      const plato = item.num_plato || 0; // Si no tiene plato asignado, es el 0 (Centro de mesa)
+      if (!acc[plato]) {
+        acc[plato] = [];
+      }
+      acc[plato].push({ ...item, originalIndex: index }); 
+      return acc;
+    }, {});
+
+    return Object.keys(grupos)
+      .sort((a, b) => Number(a) - Number(b)) 
+      .map(platoNum => ({
+        title: platoNum === '0' ? ' Al Centro de la Mesa' : ` Plato ${platoNum}`,
+        data: grupos[platoNum]
+      }));
+  };
+
+  const sectionsData = agruparPorPlatos();
+
   const handleSendOrder = async () => {
     if (orderItems.length === 0) {
       Alert.alert("Orden Vacía", "No hay nada que enviar.");
@@ -27,13 +47,11 @@ export default function OrderSummaryScreen({ navigation }) {
     }
 
     try {
-      // 1. Calculamos el total exacto
       const calculatedTotal = orderItems.reduce((sum, item) => {
         const precio = item.priceFinal ? item.priceFinal : item.price;
         return sum + (precio * item.quantity);
       }, 0);
 
-      // 2. Preparamos los datos de la orden padre
       const orderPayload = {
         order_type: orderInfo.tipo === 'ComerAquí' ? 'comer_aqui' : 'para_llevar',
         mesa: orderInfo.mesa || null,
@@ -45,7 +63,6 @@ export default function OrderSummaryScreen({ navigation }) {
       let currentOrderId;
 
       if (editingOrderId) {
-        //  Actualizamos la orden existente 
         const { error: updateError } = await supabase
           .from('orders')
           .update(orderPayload)
@@ -54,7 +71,6 @@ export default function OrderSummaryScreen({ navigation }) {
         if (updateError) throw updateError;
         currentOrderId = editingOrderId;
 
-        // Limpiamos los items viejos de esta orden para meter los nuevos (forma más segura)
         const { error: deleteError } = await supabase
           .from('order_items')
           .delete()
@@ -63,7 +79,6 @@ export default function OrderSummaryScreen({ navigation }) {
         if (deleteError) throw deleteError;
 
       } else {
-        //  Insertamos una orden nueva 
         const { data: orderData, error: orderError } = await supabase
           .from('orders')
           .insert([orderPayload])
@@ -74,7 +89,6 @@ export default function OrderSummaryScreen({ navigation }) {
         currentOrderId = orderData.order_id;
       }
 
-      // 3. Insertamos los platillos actualizados (aplica para ambos modos)
       const itemsToInsert = orderItems.map(item => {
         const precioFinal = item.priceFinal ? item.priceFinal : item.price;
         return {
@@ -84,7 +98,8 @@ export default function OrderSummaryScreen({ navigation }) {
           quantity: item.quantity,
           subtotal: precioFinal * item.quantity,
           notes: item.comentario || null,
-          num_personas: item.personas || null 
+          num_personas: item.personas || null,
+          num_plato: item.num_plato || 0 
         };
       });
 
@@ -94,10 +109,8 @@ export default function OrderSummaryScreen({ navigation }) {
 
       if (itemsError) throw itemsError;
 
-      // 4. Actualizamos tu contexto local (FrontEnd)
       finalizeOrder();
 
-      // 5. Avisamos que todo salió bien
       Alert.alert(
         editingOrderId ? "¡Cambios Guardados!" : "¡Orden Guardada!",
         "La base de datos se actualizó correctamente.", 
@@ -140,8 +153,10 @@ export default function OrderSummaryScreen({ navigation }) {
     }
   };
 
-  const renderItem = ({ item, index }) => {
+  const renderItem = ({ item }) => {
     const precioMostrar = (item.priceFinal ? item.priceFinal : item.price) * item.quantity;
+    
+    const idx = item.originalIndex;
 
     return (
       <View style={styles.card}>
@@ -149,9 +164,7 @@ export default function OrderSummaryScreen({ navigation }) {
           <Text style={styles.quantityBadge}>{item.quantity}x</Text>
           <View>
             <Text style={styles.itemName}>{item.name}</Text>
-            
             {item.personas ? <Text style={styles.personasTag}>[Para {item.personas} platos]</Text> : null}
-            
             {item.comentario ? <Text style={styles.notaGrisText}>{item.comentario}</Text> : null}
           </View>
         </View>
@@ -162,7 +175,7 @@ export default function OrderSummaryScreen({ navigation }) {
           <TouchableOpacity 
             onPress={() => {
               setItemSeleccionado(item);
-              setIndexSeleccionado(index); 
+              setIndexSeleccionado(idx); // oh si oh no oh si oh no
               setModalVisible(true);       
             }} 
             style={styles.actionButton}
@@ -173,7 +186,7 @@ export default function OrderSummaryScreen({ navigation }) {
           <TouchableOpacity 
             onPress={() => {
               setItemSeleccionado(item);
-              setIndexSeleccionado(index);
+              setIndexSeleccionado(idx); 
               setModalPrecioVisible(true);
             }} 
             style={styles.actionButton}
@@ -181,7 +194,7 @@ export default function OrderSummaryScreen({ navigation }) {
             <MaterialIcons name="attach-money" size={28} color="#FBC02D" />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => confirmarEliminacion(index, item.name)} style={styles.actionButton}>
+          <TouchableOpacity onPress={() => confirmarEliminacion(idx, item.name)} style={styles.actionButton}>
             <MaterialIcons name="remove-circle" size={28} color="#FF5252" />
           </TouchableOpacity>
         </View>
@@ -199,12 +212,18 @@ export default function OrderSummaryScreen({ navigation }) {
 
       <Text style={styles.subTitle}>Revisa el pedido antes de enviar:</Text>
 
-      <FlatList
-        data={orderItems}
+      <SectionList
+        sections={sectionsData}
+        keyExtractor={(item) => item.originalIndex.toString()}
         renderItem={renderItem}
-        keyExtractor={(_, index) => index.toString()}
+        renderSectionHeader={({ section: { title } }) => (
+          <View style={styles.sectionHeaderContainer}>
+            <Text style={styles.sectionHeaderText}>{title}</Text>
+          </View>
+        )}
         contentContainerStyle={{ paddingBottom: 120 }}
         ListEmptyComponent={<Text style={styles.emptyText}> El carrito está vacío. </Text>}
+        stickySectionHeadersEnabled={false} // Para que no se quede pegado arriba feo al scrollear
       />
 
       <View style={styles.footer}>
@@ -252,12 +271,14 @@ const styles = StyleSheet.create({
   header: { backgroundColor: '#333', padding: 15, borderRadius: 10, marginBottom: 15 },
   infoText: { color: 'white', fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
   subTitle: { fontSize: 16, marginBottom: 10, color: '#666' },
+  
+  sectionHeaderContainer: { backgroundColor: '#E0E0E0', paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8, marginTop: 15, marginBottom: 10, alignSelf: 'flex-start' },
+  sectionHeaderText: { fontSize: 16, fontWeight: 'bold', color: '#333' },
+
   card: { backgroundColor: 'white', padding: 10, paddingHorizontal: 15, borderRadius: 10, marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', elevation: 2 },
   quantityBadge: { fontSize: 18, fontWeight: 'bold', color: '#FF6347', marginRight: 10 },
   itemName: { fontSize: 16, color: '#333' }, 
-  
   personasTag: { fontSize: 13, color: '#FF6347', fontWeight: 'bold', marginTop: 2 },
-  
   notaGrisText: { fontSize: 12, color: '#888', fontStyle: 'italic', marginTop: 2 }, 
   itemPrice: { fontSize: 16, color: '#4CAF50', fontWeight: 'bold', marginRight: 15 },
   actionButton: { padding: 5, marginLeft: 10 }, 

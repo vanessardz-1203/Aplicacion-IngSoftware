@@ -22,15 +22,26 @@ export const MENU_DATA = {
       { id: 'h3', name: 'Hamburguesa Especial', price: 130 },
       { id: 'h4', name: 'Salchiburger', price: 130 },
     ],
-    'Tacos': [
-      { id: 't1', name: 'Taco Carne Asada', price: 23 },
-      { id: 't2', name: 'Taco Asado de Puerco', price: 23},
-      { id: 't3', name: 'Taco Guisado de Res', price: 23 },
-      { id: 't4', name: 'Taco Picadillo', price: 23 },
-      { id: 't5', name: 'Taco Carne de Puerco', price: 23 },
-      { id: 't6', name: 'Taco Chicharrón de res', price: 23  },
-      { id: 't7', name: 'Taco Pollo Deshebrado', price: 23  },
+    'Tacos Maiz': [
+      { id: 't1-m', name: 'Taco Carne Asada', price: 23 },
+      { id: 't2-m', name: 'Taco Asado de Puerco', price: 23},
+      { id: 't3-m', name: 'Taco Guisado de Res', price: 23 },
+      { id: 't4-m', name: 'Taco Picadillo', price: 23 },
+      { id: 't5-m', name: 'Taco Carne de Puerco', price: 23 },
+      { id: 't6-m', name: 'Taco Chicharrón de res', price: 23  },
+      { id: 't7-m', name: 'Taco Pollo Deshebrado', price: 23  },
     ],
+
+    'Tacos Harina': [
+      { id: 't1-h', name: 'Taco Carne Asada', price: 23 },
+      { id: 't2-h', name: 'Taco Asado de Puerco', price: 23},
+      { id: 't3-h', name: 'Taco Guisado de Res', price: 23 },
+      { id: 't4-h', name: 'Taco Picadillo', price: 23 },
+      { id: 't5-h', name: 'Taco Carne de Puerco', price: 23 },
+      { id: 't6-h', name: 'Taco Chicharrón de res', price: 23  },
+      { id: 't7-h', name: 'Taco Pollo Deshebrado', price: 23  },
+    ],
+
     'Burritos': [
       { id: 'bu1', name: 'Burrito Carne Asada con Queso', price: 110 },
       { id: 'bu2', name: 'Burrito Asado con frijoles', price: 100 },

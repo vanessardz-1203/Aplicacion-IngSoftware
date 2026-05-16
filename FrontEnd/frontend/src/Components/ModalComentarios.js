@@ -4,7 +4,6 @@ import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Switch } fr
 export default function ModalComentarios({ visible, onClose, item, onSave }) {
   const [comentario, setComentario] = useState('');
   
-  // Estados para los extras
   const [extraQueso, setExtraQueso] = useState(false);
   const [extraAguacate, setExtraAguacate] = useState(false);
   const [extraArroz, setExtraArroz] = useState(false);
@@ -13,7 +12,6 @@ export default function ModalComentarios({ visible, onClose, item, onSave }) {
   const [saborSeleccionado, setSaborSeleccionado] = useState(null);
   const SABORES = ['Jamaica', 'Limón', 'Piña', 'Tamarindo', 'Melón', 'Sandía'];
   
-  // Cada vez que se abre el modal con un nuevo item, reseteamos los estados
   useEffect(() => {
     setComentario('');
     setExtraQueso(false);
@@ -39,7 +37,7 @@ export default function ModalComentarios({ visible, onClose, item, onSave }) {
                   key={sabor}
                   style={[
                     styles.btnSabor, 
-                    saborSeleccionado === sabor && styles.btnSaborActivo // Si está seleccionado, cambia de color
+                    saborSeleccionado === sabor && styles.btnSaborActivo 
                   ]}
                   onPress={() => setSaborSeleccionado(sabor)}
                 >
@@ -56,7 +54,6 @@ export default function ModalComentarios({ visible, onClose, item, onSave }) {
         );
       }
       
-      // Si es cualquier otra bebida (Coca, Cerveza, etc.)
       return <Text style={styles.notaGris}>Esta bebida no admite extras ni sabores.</Text>;
     }
 
@@ -107,34 +104,50 @@ export default function ModalComentarios({ visible, onClose, item, onSave }) {
     return null; 
   };
 
-  // logica para calcular costos de los extras y agg al precio final, tambien mandar el comentario a la pantalla de resumen
   const guardarCambios = () => {
     let costoTotalExtras = 0;
+    let listaExtrasTextuales = []; 
     
-    if (extraQueso) costoTotalExtras += 10;
-    if (extraArroz) costoTotalExtras += 20;
-    if (extraFrijoles) costoTotalExtras += 20;
-    
+    if (extraQueso) {
+      costoTotalExtras += 10;
+      listaExtrasTextuales.push("Queso Extra");
+    }
+    if (extraArroz) {
+      costoTotalExtras += 20;
+      listaExtrasTextuales.push("Arroz Extra");
+    }
+    if (extraFrijoles) {
+      costoTotalExtras += 20;
+      listaExtrasTextuales.push("Frijoles Extra");
+    }
     if (extraAguacate) {
-      // El aguacate vale 5 en gorditas (go) y 10 en lo demás
       costoTotalExtras += item.id.startsWith('go') ? 5 : 10;
+      listaExtrasTextuales.push("Aguacate Extra");
     }
 
-    let comentarioFinal = comentario; 
+    let comentarioFinal = ''; 
     
     if (item.id === 'be5') {
       if (!saborSeleccionado) {
-        // Validar que seleccionen sabor
         alert("Por favor selecciona un sabor para el agua fresca.");
         return; 
       }
-      // Si escribieron un comentario, lo unimos. Si no, solo mandamos el sabor.
       comentarioFinal = comentario.trim() !== '' 
-        ? `Sabor: ${saborSeleccionado} | Notas: ${comentario}` 
+        ? `Sabor: ${saborSeleccionado} | Notas: ${comentario.trim()}` 
         : `Sabor: ${saborSeleccionado}`;
+    } else {
+      const textoDeSwitches = listaExtrasTextuales.length > 0 ? `${listaExtrasTextuales.join(', ')}` : '';
+      const textoManual = comentario.trim();
+
+      if (textoDeSwitches !== '' && textoManual !== '') {
+        comentarioFinal = `Agregó: ${textoDeSwitches} | Notas: ${textoManual}`;
+      } else if (textoDeSwitches !== '') {
+        comentarioFinal = `Agregó: ${textoDeSwitches}`;
+      } else {
+        comentarioFinal = textoManual;
+      }
     }
 
-    // Le mandamos la info de regreso a la pantalla 
     onSave(comentarioFinal, costoTotalExtras);
   };
 
@@ -190,17 +203,14 @@ const styles = StyleSheet.create({
   btnGuardar: { padding: 12, borderRadius: 8, backgroundColor: '#4CAF50', flex: 1, marginLeft: 10, alignItems: 'center' },
   txtBtnGuardar: { color: 'white', fontWeight: 'bold' },
 
-
-
-
-  saboresGrid: {  // nuevo para las cosas de los sabores de las aguas 
+  saboresGrid: {  
     flexDirection: 'row',
-    flexWrap: 'wrap', // Esto hace que los botones bajen a la siguiente línea si no caben
+    flexWrap: 'wrap', 
     justifyContent: 'space-between',
     marginTop: 10,
   },
   btnSabor: {
-    width: '30%', // Caben 3 botones por fila
+    width: '30%', 
     backgroundColor: '#f0f0f0',
     paddingVertical: 10,
     borderRadius: 8,

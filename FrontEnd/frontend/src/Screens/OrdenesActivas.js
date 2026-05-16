@@ -21,6 +21,7 @@ export default function OrdenesActivas({ navigation }) {
       const { data, error } = await supabase
         .from('orders')
         .select(`*, order_items (*)`)
+        .eq('status', 'en_cocina') 
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -38,8 +39,8 @@ export default function OrdenesActivas({ navigation }) {
           name: item.nom_platillo,
           quantity: item.quantity,
           comentario: item.notes,
-          
-          personas: item.num_personas || item.personas 
+          personas: item.num_personas || item.personas,
+          plato: item.num_plato || 0 
         }))
       }));
 
@@ -69,7 +70,7 @@ export default function OrdenesActivas({ navigation }) {
     };
   }, []);
 
-  const handleDeleteOrder = async (orderId) => {
+const handleDeleteOrder = async (orderId) => {
     Alert.alert(
       "¿Finalizar Orden?",
       "¿Estás seguro de que esta orden ya está lista?",
@@ -78,12 +79,23 @@ export default function OrdenesActivas({ navigation }) {
         { 
           text: "Sí, finalizar", 
           onPress: async () => {
-            const { error } = await supabase
-              .from('orders')
-              .delete() 
-              .eq('order_id', orderId);
+            console.log("Intentando actualizar la orden con ID:", orderId);
             
-            if (error) Alert.alert("Error", "No se pudo eliminar de la nube.");
+            const { data, error } = await supabase
+              .from('orders')
+              .update({ status: 'entregada' }) 
+              .eq('order_id', orderId)
+              .select(); 
+            
+            console.log("Respuesta de Supabase -> Data:", data, "Error:", error);
+
+            if (error) {
+              Alert.alert("Error de Supabase", error.message);
+            } else if (!data || data.length === 0) {
+              Alert.alert("Aviso", "Supabase no marcó error, pero tampoco actualizó nada (Posible bloqueo de RLS o nombre de columna incorrecto).");
+            } else {
+              fetchOrders(); 
+            }
           }, 
           style: "destructive" 
         }
@@ -98,6 +110,24 @@ export default function OrdenesActivas({ navigation }) {
 
   const renderOrderTicket = ({ item }) => {
     const totalItems = item.items.reduce((sum, prod) => sum + prod.quantity, 0);
+
+    const agruparPorPlatos = (productos) => {
+      const grupos = productos.reduce((acc, prod) => {
+        const platoNum = prod.plato || 0;
+        if (!acc[platoNum]) acc[platoNum] = [];
+        acc[platoNum].push(prod);
+        return acc;
+      }, {});
+
+      return Object.keys(grupos)
+        .sort((a, b) => Number(a) - Number(b))
+        .map(num => ({
+          platoNum: num,
+          data: grupos[num]
+        }));
+    };
+
+    const gruposPlatos = agruparPorPlatos(item.items);
 
     return (
       <View style={styles.ticketCard}>
@@ -130,20 +160,30 @@ export default function OrdenesActivas({ navigation }) {
         </View>
 
         <View style={styles.itemsList}>
-          {item.items.map((prod, index) => (
-            <View key={index} style={{ marginBottom: 8 }}>
-              <Text style={styles.itemText}>
-                • {prod.quantity}x {prod.name}
-                
-                {prod.personas ? (
-                  <Text style={styles.personasDestacado}> [Para {prod.personas} platos]</Text>
-                ) : null}
-              </Text>
+          {gruposPlatos.map((grupo, gIndex) => (
+            <View key={gIndex} style={styles.grupoContainer}>
+              
+              <View style={styles.platoHeaderBox}>
+                <Text style={styles.platoHeaderText}>
+                  {grupo.platoNum === '0' ? 'Al Centro de la Mesa' : `Plato ${grupo.platoNum}`}
+                </Text>
+              </View>
 
-              {/* Notas especiales del cliente */}
-              {prod.comentario ? (
-                <Text style={styles.notaGris}>   ↳ Nota: {prod.comentario}</Text>
-              ) : null}
+              {grupo.data.map((prod, index) => (
+                <View key={index} style={styles.productoRow}>
+                  <Text style={styles.itemText}>
+                    • {prod.quantity}x {prod.name}
+                    
+                    {prod.personas ? (
+                      <Text style={styles.personasDestacado}> [Para {prod.personas} platos]</Text>
+                    ) : null}
+                  </Text>
+
+                  {prod.comentario ? (
+                    <Text style={styles.extraResaltado}>   ↳ EXTRA / NOTA: {prod.comentario}</Text>
+                  ) : null}
+                </View>
+              ))}
             </View>
           ))}
         </View>
@@ -188,11 +228,17 @@ const styles = StyleSheet.create({
   statusContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FF6347', paddingVertical: 5, paddingHorizontal: 15 },
   statusText: { color: 'white', fontWeight: 'bold', marginLeft: 5, fontSize: 12 },
   itemsList: { padding: 15 },
-  itemText: { fontSize: 17, color: '#333', fontWeight: '500' },
   
+  grupoContainer: { marginBottom: 15 },
+  platoHeaderBox: { backgroundColor: '#EAEAEA', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 6, alignSelf: 'flex-start', marginBottom: 8 },
+  platoHeaderText: { fontSize: 14, fontWeight: 'bold', color: '#444', textTransform: 'uppercase' },
+  productoRow: { marginBottom: 8, paddingLeft: 5 },
+
+  itemText: { fontSize: 17, color: '#333', fontWeight: '500' },
   personasDestacado: { color: '#FF6347', fontWeight: 'bold', fontSize: 16 },
   
-  notaGris: { fontSize: 14, color: '#777', fontStyle: 'italic' },
+  extraResaltado: { fontSize: 15, color: '#D35400', fontWeight: 'bold', fontStyle: 'italic', marginTop: 2 },
+  
   ticketFooter: { padding: 15, borderTopWidth: 1, borderTopColor: '#eee', alignItems: 'flex-end' },
   totalText: { fontWeight: 'bold', color: '#666' },
   emptyContainer: { alignItems: 'center', justifyContent: 'center', marginTop: 100 },
